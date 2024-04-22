@@ -1,9 +1,11 @@
-package dev.dipesh.service;
+package dev.dipesh.service.impl;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.dipesh.entity.Song;
 import dev.dipesh.repository.SongsRepository;
+import dev.dipesh.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +22,11 @@ public class SongServiceImpl implements SongService {
     @Autowired
     private SongsRepository songsRepository;
     @Autowired
-    private HttpClient client;
+    private HttpClient httpClient;
+
+    private final String baseUrl = "https://api.sunoapiapi.com/api/v1/gateway/feed/";
+    private final String apiKey = "4mANlXLpmBdJOqVkeYxjgWDvkF0G6gz+";
+
     @Override
     public ArrayList<String> extractSongIds(String jsonResponse) {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -42,33 +48,62 @@ public class SongServiceImpl implements SongService {
     }
 
 
+    /*    @Override
+        public List<Song> fetchAndSaveSongDetails(List<String> songIds) {
+            List<Song> songDetails = new ArrayList<>();
+            for (String songId : songIds) {
+                try {
+                    String url = "http://localhost:8000/feed/" + songId;
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .GET()
+                            .uri(URI.create(url))
+                            .header("Accept", "application/json")
+                            .build();
+
+                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                    if (response.statusCode() == 200) {
+                        Song song = saveSongDetails(response.body());
+                        if (song != null) {
+                            songDetails.add(song);
+                        }
+                    } else {
+                        // Log or handle the error appropriately
+                    }
+                } catch (IOException | InterruptedException e) {
+                    // Log the exception
+                }
+            }
+            return songDetails;
+        }*/
     @Override
     public List<Song> fetchAndSaveSongDetails(List<String> songIds) {
         List<Song> songDetails = new ArrayList<>();
+        String baseUrl = "https://api.sunoapiapi.com/api/v1/";
         for (String songId : songIds) {
             try {
-                String url = "http://localhost:8000/feed/" + songId;
+                String url = baseUrl + "gateway/feed/" + songId; // Update the URL
                 HttpRequest request = HttpRequest.newBuilder()
                         .GET()
                         .uri(URI.create(url))
                         .header("Accept", "application/json")
+                        .header("api-key", apiKey) // Use the header parameter as per API documentation
                         .build();
 
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 if (response.statusCode() == 200) {
                     Song song = saveSongDetails(response.body());
                     if (song != null) {
                         songDetails.add(song);
                     }
                 } else {
-                    // Log or handle the error appropriately
+                    System.out.println("SOme Error Occured");
                 }
             } catch (IOException | InterruptedException e) {
-                // Log the exception
             }
         }
         return songDetails;
     }
+
 
     @Override
     public Song saveSongDetails(String responseBody) throws IOException {
@@ -95,6 +130,43 @@ public class SongServiceImpl implements SongService {
             System.out.println("Unable to add song to DB, JSON response is not an array.");
         }
         return song; // Return the last song processed or modify logic to return a list if multiple
+    }
+
+    @Override
+    public Song getSongById(String id) {
+        String url = baseUrl + id;
+        HttpRequest request = HttpRequest.newBuilder()
+                .GET()
+                .uri(URI.create(url))
+                .header("Accept", "application/json")
+                .header("api-key", apiKey)
+                .build();
+        try {
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                return parseSong(response.body());
+            } else {
+                // Handle non-200 status codes appropriately
+            }
+        } catch (IOException | InterruptedException e) {
+            // Handle the exception appropriately
+        }
+        return null;
+    }
+
+    private Song parseSong(String responseBody) {
+        ObjectMapper objectMapper = new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        try {
+            JsonNode root = objectMapper.readTree(responseBody);
+            if (root.path("code").asInt() == 0 && "success".equals(root.path("msg").asText())) {
+                JsonNode dataNode = root.path("data");
+                return objectMapper.treeToValue(dataNode, Song.class);
+            }
+        } catch (IOException e) {
+            // Handle the exception appropriately
+        }
+        return null;
     }
 
 }

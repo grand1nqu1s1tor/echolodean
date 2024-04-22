@@ -27,8 +27,6 @@ public class SpotifyController {
     @Value("${custom.server.ip}")
     private String customIp;
 
-    @Autowired
-    private UserProfileService userProfileService;
 
     @Autowired
     SpotifyAuthorizationService spotifyAuthorizationService;
@@ -36,8 +34,6 @@ public class SpotifyController {
     @Autowired
     private SpotifyConfiguration spotifyConfiguration;
 
-    @Autowired
-    private UserDetailsRepository userDetailsRepository;
 
     @Autowired
     static HttpClient client = HttpClient.newBuilder()
@@ -65,7 +61,7 @@ public class SpotifyController {
             spotifyAuthorizationService.authorize(userCode);
             GetCurrentUsersProfileRequest profileRequest = spotifyApi.getCurrentUsersProfile().build();
             User user = profileRequest.execute();
-            userProfileService.insertOrUpdateUserDetails(user, spotifyApi.getAccessToken(), spotifyApi.getRefreshToken());
+            //userProfileService.insertOrUpdateUserDetails(user, spotifyApi.getAccessToken(), spotifyApi.getRefreshToken());
             return "redirect:" + customIp + "/home?id=" + user.getId();
         } catch (Exception e) {
             System.out.println("Exception occurred while getting user code: " + e.getMessage());

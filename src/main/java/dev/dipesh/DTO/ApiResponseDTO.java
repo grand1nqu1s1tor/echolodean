@@ -1,4 +1,4 @@
-package dev.dipesh.handler;
+package dev.dipesh.DTO;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,26 +13,26 @@ import java.io.IOException;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ApiResponse {
+public class ApiResponseDTO {
     private String body;
     private boolean successful;
     private String errorMessage;
 
     // Custom method to parse and check for specific error messages in the response body
-    public static ApiResponse parseResponse(String body) {
+    public static ApiResponseDTO parseResponse(String body) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             JsonNode rootNode = objectMapper.readTree(body);
             if(rootNode.isObject()){
                 String message = rootNode.path("detail").asText();
                 if (message.contains("Insufficient credits")) {
-                    return new ApiResponse(body, false, message);
+                    return new ApiResponseDTO(body, false, message);
                 }
             }
-            return new ApiResponse(body, true, null);
+            return new ApiResponseDTO(body, true, null);
         } catch (IOException e) {
             // If there's an exception in parsing, assume it's a parse failure not a content error
-            return new ApiResponse(null, false, "Failed to parse response: " + e.getMessage());
+            return new ApiResponseDTO(null, false, "Failed to parse response: " + e.getMessage());
         }
     }
 
