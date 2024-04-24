@@ -9,5 +9,6 @@ public interface SongService {
     List<String> extractSongIds(String jsonResponse);
     List<Song> fetchAndSaveSongDetails(List<String> songIds);
     Song saveSongDetails(String responseBody) throws IOException;
-    Song getSongById(String id);
+    Song getSongByAPI(String id);
+    List<Song> findSongsByUserId(String userId);
 }

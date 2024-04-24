@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.dipesh.entity.Song;
 import dev.dipesh.repository.SongsRepository;
 import dev.dipesh.service.SongService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Service
 public class SongServiceImpl implements SongService {
@@ -24,69 +27,42 @@ public class SongServiceImpl implements SongService {
     @Autowired
     private HttpClient httpClient;
 
-    private final String baseUrl = "https://api.sunoapiapi.com/api/v1/gateway/feed/";
+    private static final Logger LOGGER = Logger.getLogger(SongService.class.getName());
+    private final String baseUrl = "https://api.sunoaiapi.com/api/v1/";
     private final String apiKey = "4mANlXLpmBdJOqVkeYxjgWDvkF0G6gz+";
 
     @Override
     public ArrayList<String> extractSongIds(String jsonResponse) {
         ObjectMapper objectMapper = new ObjectMapper();
-        ArrayList<String> songsIds = new ArrayList<>();
+        ArrayList<String> songIds = new ArrayList<>();
         try {
             JsonNode rootNode = objectMapper.readTree(jsonResponse);
-            JsonNode clipsNode = rootNode.path("clips");
-            if (clipsNode.isArray()) {
-                for (JsonNode clipNode : clipsNode) {
-                    String clipId = clipNode.path("id").asText();
-                    System.out.println("Clip ID: " + clipId);
-                    songsIds.add(clipId);
+            JsonNode dataArray = rootNode.path("data");
+            if (dataArray.isArray()) {
+                for (JsonNode dataNode : dataArray) {
+                    String songId = dataNode.path("song_id").asText();
+                    System.out.println("Song ID: " + songId);
+                    songIds.add(songId);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return songsIds;
+        return songIds;
     }
 
 
-    /*    @Override
-        public List<Song> fetchAndSaveSongDetails(List<String> songIds) {
-            List<Song> songDetails = new ArrayList<>();
-            for (String songId : songIds) {
-                try {
-                    String url = "http://localhost:8000/feed/" + songId;
-                    HttpRequest request = HttpRequest.newBuilder()
-                            .GET()
-                            .uri(URI.create(url))
-                            .header("Accept", "application/json")
-                            .build();
-
-                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                    if (response.statusCode() == 200) {
-                        Song song = saveSongDetails(response.body());
-                        if (song != null) {
-                            songDetails.add(song);
-                        }
-                    } else {
-                        // Log or handle the error appropriately
-                    }
-                } catch (IOException | InterruptedException e) {
-                    // Log the exception
-                }
-            }
-            return songDetails;
-        }*/
     @Override
     public List<Song> fetchAndSaveSongDetails(List<String> songIds) {
         List<Song> songDetails = new ArrayList<>();
-        String baseUrl = "https://api.sunoapiapi.com/api/v1/";
         for (String songId : songIds) {
             try {
-                String url = baseUrl + "gateway/feed/" + songId; // Update the URL
+                String url = baseUrl + "gateway/feed/" + songId;
                 HttpRequest request = HttpRequest.newBuilder()
                         .GET()
                         .uri(URI.create(url))
                         .header("Accept", "application/json")
-                        .header("api-key", apiKey) // Use the header parameter as per API documentation
+                        .header("api-key", apiKey)
                         .build();
 
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -96,9 +72,13 @@ public class SongServiceImpl implements SongService {
                         songDetails.add(song);
                     }
                 } else {
-                    System.out.println("SOme Error Occured");
+                    LOGGER.log(Level.WARNING, "Failed to fetch song details for ID: " + songId + ", Status code: " + response.statusCode());
                 }
             } catch (IOException | InterruptedException e) {
+                LOGGER.log(Level.SEVERE, "Error fetching song details for song ID: " + songId, e);
+                if (e instanceof InterruptedException) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
         return songDetails;
@@ -106,35 +86,35 @@ public class SongServiceImpl implements SongService {
 
 
     @Override
+    @Transactional
     public Song saveSongDetails(String responseBody) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode rootNode = objectMapper.readTree(responseBody);
-        Song song = null;
 
-        if (rootNode.isArray()) {
-            for (JsonNode item : rootNode) {
-                song = new Song();
-                song.setSongId(item.path("id").asText());
-                song.setUserId("exampleUserId"); // This should ideally come from a secure, authenticated source
-                song.setTitle(item.path("title").asText());
-                song.setDescription(item.path("metadata").path("prompt").asText());
-                song.setDuration(item.path("duration").asDouble());
-                song.setAudioUrl(item.path("audio_url").asText());
-                song.setImageUrl(item.path("image_url").asText());
-                song.setLyrics(item.path("lyrics").asText()); // Assuming 'lyrics' is available in the response
-                song.setLikes(0); // Initialize likes to zero
-
-                songsRepository.save(song);
-            }
-        } else {
-            System.out.println("Unable to add song to DB, JSON response is not an array.");
+        // Check if the 'data' field is an object and not an array
+        if (!rootNode.path("data").isObject()) {
+            throw new IllegalArgumentException("Expected JSON object in the 'data' field of the response");
         }
-        return song; // Return the last song processed or modify logic to return a list if multiple
+
+        // Extract the 'data' field, which is the song details
+        JsonNode dataNode = rootNode.path("data");
+        Song song = objectMapper.treeToValue(dataNode, Song.class);
+
+        if (song != null) {
+            // Here you would fetch the actual userId of the logged-in user, not just "currentUser"
+            song.setUserId("currentUser");
+            song.setLikes(0); // Initialize likes to zero
+            songsRepository.save(song);
+        }
+
+        return song; // Now it only returns a single Song object
     }
 
-    @Override
-    public Song getSongById(String id) {
-        String url = baseUrl + id;
+
+
+    //If the user/frontend knows the song id and want to query the Suno API for the song details.
+    public Song getSongByAPI(String id) {
+        String url = baseUrl + "gateway/feed/" + id;
         HttpRequest request = HttpRequest.newBuilder()
                 .GET()
                 .uri(URI.create(url))
@@ -146,10 +126,15 @@ public class SongServiceImpl implements SongService {
             if (response.statusCode() == 200) {
                 return parseSong(response.body());
             } else {
-                // Handle non-200 status codes appropriately
+                LOGGER.log(Level.WARNING, "Received non-OK status from server: " + response.statusCode());
             }
-        } catch (IOException | InterruptedException e) {
-            // Handle the exception appropriately
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error during HTTP request", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.log(Level.WARNING, "Request interrupted", e);
+        } catch (Exception e) { // Catching parsing or other unexpected exceptions
+            LOGGER.log(Level.SEVERE, "Error parsing the song data", e);
         }
         return null;
     }
@@ -169,4 +154,9 @@ public class SongServiceImpl implements SongService {
         return null;
     }
 
+
+    @Override
+    public List<Song> findSongsByUserId(String userId) {
+        return songsRepository.findByUserId(userId);
+    }
 }

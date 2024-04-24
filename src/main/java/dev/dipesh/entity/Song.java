@@ -1,41 +1,53 @@
 package dev.dipesh.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
 import java.util.Date;
 
 @Entity
 @Table(name = "songs_metadata")
 @Getter
 @Setter
+@JsonIgnoreProperties(ignoreUnknown = true) // This tells Jackson to ignore fields not listed here
 public class Song {
+
     @Id
-    private String songId;  // Assuming this is a UUID generated elsewhere
+    @JsonProperty("song_id") // Match JSON property to the Java field
+    private String songId;
 
     @Column(nullable = false)
-    private String userId;  // Holds the user ID as a string without establishing a relationship
+    @JsonIgnore
+    private String userId;
 
     @Column(nullable = false)
     private String title;
 
     private String description;
 
+    @JsonProperty("duration") // Duration in JSON might be in different units, ensure proper conversion if needed
     private double duration;
 
     @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt = new Date();
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
+    @JsonProperty("create_time") // Match JSON property to the Java field
+    private Date createdAt;
 
-    private int likes;
+    @Transient // Likes are not part of the JSON and should not be deserialized
+    private int likes = 0; // Initialize likes to zero
 
-    @Column(nullable = true)
-    private String audioUrl;  // URL to the audio file
+    @JsonProperty("audio_url") // Match JSON property to the Java field
+    private String audioUrl;
 
-    @Column(nullable = true)
-    private String imageUrl;  // URL to the image file
+    @JsonProperty("image_url") // Match JSON property to the Java field
+    private String imageUrl;
 
-    @Lob  // Use Lob for potentially large text data
-    private String lyrics;  // Text of the song's lyrics
+    @Lob
+    @JsonProperty("meta_prompt") // Assuming this is where lyrics are stored in JSON
+    private String lyrics;
 }

@@ -6,8 +6,8 @@ import lombok.Setter;
 @Setter
 @Getter
 public class PromptRequestDTO {
-    private String gptDescriptionPrompt;
-    private boolean makeInstrumental;
+    private String gpt_description_prompt;
+    private boolean make_instrumental;
     private String mv;
     private String prompt;
 

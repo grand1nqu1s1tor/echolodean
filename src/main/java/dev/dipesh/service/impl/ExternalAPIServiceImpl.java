@@ -19,6 +19,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
         this.client = client;
     }
 
+    private final String apiKey = "4mANlXLpmBdJOqVkeYxjgWDvkF0G6gz+";
+
     @Override
     public ApiResponseDTO postGenerateDescription(String urlString, String requestBody) {
         try {
@@ -27,8 +29,8 @@ public class ExternalAPIServiceImpl implements ExternalAPIService {
                     .uri(URI.create(urlString))
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
+                    .header("api-key", apiKey)
                     .build();
-
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             return ApiResponseDTO.parseResponse(response.body());
         } catch (Exception e) {
