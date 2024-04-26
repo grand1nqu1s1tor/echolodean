@@ -1,0 +1,46 @@
+/* Additional styles for the new components */
+
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.header {
+
+    padding: 1em;
+    background-color: #ffffff;
+    color: white;
+    align-items: center;
+}
+.menu {
+background-color: #ffffff;
+    color: white;
+    width: 200px; /* Adjust as needed */
+    padding: 1em;
+}
+
+.search-field {
+    flex-grow: 1;
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+.profile-button {
+    margin-left: auto;
+}
+
+.menu .vaadin-button {
+    width: 100%;
+    justify-content: start;
+}
+
+.playlist-card {
+    /* Existing styles... */
+    align-items: center;
+    text-align: center;
+}
+
+.footer-text {
+    opacity: 0.7;
+}

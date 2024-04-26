@@ -16,7 +16,7 @@ import java.util.List;
 
 @RequestMapping("/songs")
 @RestController
-public class SpotifyTrackController {
+public class SongController {
     @Autowired
     private SongService songService;
     @Autowired
@@ -62,5 +62,11 @@ public class SpotifyTrackController {
             // Log the exception and handle the error response accordingly
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @GetMapping("/trending")
+    public ResponseEntity<List<Song>> getTrendingSongs() {
+        List<Song> trendingSongs = songService.getTrendingSongs(10);
+        return ResponseEntity.ok(trendingSongs);
     }
 }

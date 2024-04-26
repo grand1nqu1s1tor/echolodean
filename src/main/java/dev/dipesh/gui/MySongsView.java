@@ -1,0 +1,102 @@
+package dev.dipesh.gui;
+
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
+import dev.dipesh.entity.Song;
+import dev.dipesh.service.SongService;
+
+import java.util.List;
+
+@Route("my-songs")
+@PageTitle("My Songs")
+@CssImport("./styles/styles.css")
+public class MySongsView extends VerticalLayout {
+
+    private final SongService songService;
+    private Grid<Song> grid = new Grid<>(Song.class);
+
+    private AudioPlayer audioPlayer = new AudioPlayer(); // Here is the custom audio player
+
+    public MySongsView(SongService songService) {
+        this.songService = songService;
+        setSizeFull();
+        configureGrid();
+        add(grid);
+        updateList();
+        audioPlayer.setVisible(false); //
+        add(audioPlayer);
+    }
+
+    private void configureGrid() {
+        grid.addClassName("song-grid");
+        grid.setSizeFull();
+        grid.removeAllColumns(); // Clear any existing columns
+
+        // Image column
+        grid.addColumn(new ComponentRenderer<>(song -> {
+            Image image = new Image(song.getImageUrl(), "Album cover");
+            image.setWidth("100px"); // Set width to make images consistent
+            image.setHeight("100px");
+            return image;
+        })).setHeader("Cover").setAutoWidth(true);
+
+        // Title column
+        grid.addColumn(Song::getTitle).setHeader("Title")
+                .setAutoWidth(true)
+                .setFlexGrow(0); // Prevent the column from stretching
+
+        // Inside the configureGrid method after setting up the play button
+        grid.addColumn(new ComponentRenderer<>(song -> {
+            Button playButton = new Button("Play", click -> {
+                audioPlayer.setSource(song.getAudioUrl());
+                audioPlayer.setAlbumCover(song.getImageUrl());
+                audioPlayer.setTitle(song.getTitle());
+                audioPlayer.setLyrics(song.getLyrics());
+                audioPlayer.setVisible(true); // Show the audio player
+            });
+            playButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            return playButton;
+        })).setHeader("Audio");
+
+
+
+        // Adjust the size of the grid's columns
+        grid.getColumns().forEach(col -> {
+            col.setResizable(true);
+            col.getElement().getStyle().set("text-align", "center");
+        });
+
+        // Adjust the height of the rows
+        grid.setAllRowsVisible(true);
+    }
+
+
+    // Method to play a song
+    private void playSong(Song song) {
+        audioPlayer.setSource(song.getAudioUrl());
+        audioPlayer.setLyrics(song.getLyrics());
+        audioPlayer.setAlbumCover(song.getImageUrl()); // Set the album cover
+        audioPlayer.setTitle(song.getTitle()); // Set the song title
+        audioPlayer.setVisible(true);
+    }
+
+
+    private void updateList() {
+        String currentUserId = getCurrentUserId(); // Implement this method to obtain the current user's ID
+        List<Song> songs = songService.findSongsByUserId(currentUserId);
+        grid.setItems(songs);
+    }
+
+    private String getCurrentUserId() {
+        // Obtain the current user's ID from the security context or however you store the current user
+        // This is just a placeholder, and you will need to replace it with your actual user ID retrieval logic
+        return "currentUser";
+    }
+}

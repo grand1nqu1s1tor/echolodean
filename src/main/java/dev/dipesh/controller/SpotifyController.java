@@ -2,7 +2,9 @@ package dev.dipesh.controller;
 
 import dev.dipesh.config.SpotifyConfiguration;
 import dev.dipesh.service.SpotifyAuthorizationService;
+import dev.dipesh.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +13,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.model_objects.credentials.AuthorizationCodeCredentials;
 import se.michaelthelin.spotify.model_objects.specification.User;
+import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeRequest;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
 import se.michaelthelin.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest;
 
@@ -34,6 +39,9 @@ public class SpotifyController {
     @Autowired
     private SpotifyConfiguration spotifyConfiguration;
 
+    @Autowired
+    private UserService userService;
+
 
     @Autowired
     static HttpClient client = HttpClient.newBuilder()
@@ -54,20 +62,45 @@ public class SpotifyController {
         response.sendRedirect(uri.toString());
     }
 
+
     @GetMapping("/get-user-code")
-    public String getSpotifyUserCode(@RequestParam("code") String userCode, RedirectAttributes redirectAttributes) {
+    public void getSpotifyUserCode(@RequestParam("code") String userCode, RedirectAttributes redirectAttributes, HttpServletResponse response) {
         try {
             SpotifyApi spotifyApi = spotifyConfiguration.getSpotifyObject();
-            spotifyAuthorizationService.authorize(userCode);
+            AuthorizationCodeRequest authorizationCodeRequest = spotifyApi.authorizationCode(userCode).build();
+            AuthorizationCodeCredentials authorizationCodeCredentials = authorizationCodeRequest.execute();
+
+            // Set access and refresh token for further "spotifyApi" object usage
+            spotifyApi.setAccessToken(authorizationCodeCredentials.getAccessToken());
+            spotifyApi.setRefreshToken(authorizationCodeCredentials.getRefreshToken());
+
             GetCurrentUsersProfileRequest profileRequest = spotifyApi.getCurrentUsersProfile().build();
             User user = profileRequest.execute();
-            //userProfileService.insertOrUpdateUserDetails(user, spotifyApi.getAccessToken(), spotifyApi.getRefreshToken());
-            return "redirect:" + customIp + "/home?id=" + user.getId();
-        } catch (Exception e) {
+
+            // Process user details and implement user-specific logic if necessary
+            processUserDetails(user);
+
+            // Perform redirect
+            response.sendRedirect(customIp + "/home");
+        } catch (Exception e) { // Catch more general Exception to cover all bases
             System.out.println("Exception occurred while getting user code: " + e.getMessage());
-            redirectAttributes.addFlashAttribute("error", "Error processing Spotify data");
-            return "redirect:/error";
+            try {
+                // Redirect to an error page or handle differently if needed
+                response.sendRedirect("/error");
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
         }
     }
 
+    private void processUserDetails(User spotifyUser) {
+        dev.dipesh.entity.User localUser = userService.getUserById(spotifyUser.getId());
+        if (localUser == null) {
+            localUser = new dev.dipesh.entity.User();
+            localUser.setUserId(spotifyUser.getId());
+            localUser.setUsername(spotifyUser.getDisplayName());
+            localUser.setEmail(spotifyUser.getEmail());
+        }
+        userService.saveUser(localUser);
+    }
 }

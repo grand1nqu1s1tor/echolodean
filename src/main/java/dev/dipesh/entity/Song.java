@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+
 import java.util.Date;
 
 @Entity
@@ -14,6 +16,7 @@ import java.util.Date;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true) // This tells Jackson to ignore fields not listed here
+@ToString
 public class Song {
 
     @Id
@@ -37,9 +40,6 @@ public class Song {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
     @JsonProperty("create_time") // Match JSON property to the Java field
     private Date createdAt;
-
-    @Transient // Likes are not part of the JSON and should not be deserialized
-    private int likes = 0; // Initialize likes to zero
 
     @JsonProperty("audio_url") // Match JSON property to the Java field
     private String audioUrl;

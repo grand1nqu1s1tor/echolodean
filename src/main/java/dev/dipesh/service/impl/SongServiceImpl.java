@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.dipesh.entity.Song;
-import dev.dipesh.repository.SongsRepository;
+import dev.dipesh.repository.SongRepository;
 import dev.dipesh.service.SongService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -23,7 +25,7 @@ import java.util.logging.Logger;
 @Service
 public class SongServiceImpl implements SongService {
     @Autowired
-    private SongsRepository songsRepository;
+    private SongRepository songRepository;
     @Autowired
     private HttpClient httpClient;
 
@@ -103,8 +105,7 @@ public class SongServiceImpl implements SongService {
         if (song != null) {
             // Here you would fetch the actual userId of the logged-in user, not just "currentUser"
             song.setUserId("currentUser");
-            song.setLikes(0); // Initialize likes to zero
-            songsRepository.save(song);
+            songRepository.save(song);
         }
 
         return song; // Now it only returns a single Song object
@@ -157,6 +158,11 @@ public class SongServiceImpl implements SongService {
 
     @Override
     public List<Song> findSongsByUserId(String userId) {
-        return songsRepository.findByUserId(userId);
+        return songRepository.findByUserId(userId);
+    }
+
+    @Override
+    public List<Song> getTrendingSongs(int limit) {
+        return songRepository.findTopTrendingSongs(PageRequest.of(0, limit));
     }
 }

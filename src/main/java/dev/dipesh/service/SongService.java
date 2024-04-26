@@ -11,4 +11,5 @@ public interface SongService {
     Song saveSongDetails(String responseBody) throws IOException;
     Song getSongByAPI(String id);
     List<Song> findSongsByUserId(String userId);
+    public List<Song> getTrendingSongs(int limit);
 }
