@@ -20,23 +20,17 @@ import java.util.List;
 @Route("my-songs")
 @PageTitle("My Songs")
 @CssImport("./styles/styles.css")
-public class MySongsView extends VerticalLayout implements BeforeEnterObserver {
+public class MySongsView extends VerticalLayout  {
 
     private final SongService songService;
-    private final SecuredViewAccessChecker accessChecker;
+    //private final SecuredViewAccessChecker accessChecker;
     private Grid<Song> grid = new Grid<>(Song.class);
 
     private AudioPlayerComponent audioPlayerComponent = new AudioPlayerComponent(); // Here is the custom audio player
 
-    @Override
-    public void beforeEnter(BeforeEnterEvent event) {
-        // Delegate to the access checker to determine if navigation is allowed
-        accessChecker.beforeEnter(event);
-    }
 
     public MySongsView(SongService songService, SecuredViewAccessChecker accessChecker) {
         this.songService = songService;
-        this.accessChecker = accessChecker;
         setSizeFull();
         configureGrid();
         add(grid);
