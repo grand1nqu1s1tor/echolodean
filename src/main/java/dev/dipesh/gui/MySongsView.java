@@ -7,9 +7,12 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
+import com.vaadin.flow.router.BeforeEnterEvent;
+import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import dev.dipesh.entity.Song;
+import dev.dipesh.gui.components.AudioPlayerComponent;
 import dev.dipesh.service.SongService;
 
 import java.util.List;
@@ -17,21 +20,29 @@ import java.util.List;
 @Route("my-songs")
 @PageTitle("My Songs")
 @CssImport("./styles/styles.css")
-public class MySongsView extends VerticalLayout {
+public class MySongsView extends VerticalLayout implements BeforeEnterObserver {
 
     private final SongService songService;
+    private final SecuredViewAccessChecker accessChecker;
     private Grid<Song> grid = new Grid<>(Song.class);
 
-    private AudioPlayer audioPlayer = new AudioPlayer(); // Here is the custom audio player
+    private AudioPlayerComponent audioPlayerComponent = new AudioPlayerComponent(); // Here is the custom audio player
 
-    public MySongsView(SongService songService) {
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        // Delegate to the access checker to determine if navigation is allowed
+        accessChecker.beforeEnter(event);
+    }
+
+    public MySongsView(SongService songService, SecuredViewAccessChecker accessChecker) {
         this.songService = songService;
+        this.accessChecker = accessChecker;
         setSizeFull();
         configureGrid();
         add(grid);
         updateList();
-        audioPlayer.setVisible(false); //
-        add(audioPlayer);
+        audioPlayerComponent.setVisible(false); //
+        add(audioPlayerComponent);
     }
 
     private void configureGrid() {
@@ -55,11 +66,11 @@ public class MySongsView extends VerticalLayout {
         // Inside the configureGrid method after setting up the play button
         grid.addColumn(new ComponentRenderer<>(song -> {
             Button playButton = new Button("Play", click -> {
-                audioPlayer.setSource(song.getAudioUrl());
-                audioPlayer.setAlbumCover(song.getImageUrl());
-                audioPlayer.setTitle(song.getTitle());
-                audioPlayer.setLyrics(song.getLyrics());
-                audioPlayer.setVisible(true); // Show the audio player
+                audioPlayerComponent.setSource(song.getAudioUrl());
+                audioPlayerComponent.setAlbumCover(song.getImageUrl());
+                audioPlayerComponent.setTitle(song.getTitle());
+                audioPlayerComponent.setLyrics(song.getLyrics());
+                audioPlayerComponent.setVisible(true); // Show the audio player
             });
             playButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             return playButton;
@@ -80,11 +91,11 @@ public class MySongsView extends VerticalLayout {
 
     // Method to play a song
     private void playSong(Song song) {
-        audioPlayer.setSource(song.getAudioUrl());
-        audioPlayer.setLyrics(song.getLyrics());
-        audioPlayer.setAlbumCover(song.getImageUrl()); // Set the album cover
-        audioPlayer.setTitle(song.getTitle()); // Set the song title
-        audioPlayer.setVisible(true);
+        audioPlayerComponent.setSource(song.getAudioUrl());
+        audioPlayerComponent.setLyrics(song.getLyrics());
+        audioPlayerComponent.setAlbumCover(song.getImageUrl()); // Set the album cover
+        audioPlayerComponent.setTitle(song.getTitle()); // Set the song title
+        audioPlayerComponent.setVisible(true);
     }
 
 

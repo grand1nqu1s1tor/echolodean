@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -79,6 +81,10 @@ public class SpotifyController {
 
             // Process user details and implement user-specific logic if necessary
             processUserDetails(user);
+
+            //Debug
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            System.out.println(authentication.getAuthorities());
 
             // Perform redirect
             response.sendRedirect(customIp + "/home");

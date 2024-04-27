@@ -2,6 +2,7 @@ package dev.dipesh.gui;
 
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
 import dev.dipesh.entity.Song;
 import dev.dipesh.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
+@Route("trending")
 public class TrendingMusicDashboard extends VerticalLayout {
 
     private Grid<Song> grid = new Grid<>(Song.class);

@@ -11,13 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Route("home")
 @PageTitle("Home")
-public class MainView extends VerticalLayout {
+public class UserDashboardView extends VerticalLayout {
 
     private final TrendingMusicDashboard trendingMusicDashboard;
 
 
     @Autowired
-    public MainView(TrendingMusicDashboard trendingMusicDashboard) {
+    public UserDashboardView(TrendingMusicDashboard trendingMusicDashboard) {
         this.trendingMusicDashboard = trendingMusicDashboard;
         // User greeting
         String userName = "currentUser";  // TODO: Fetch from the security context

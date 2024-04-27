@@ -1,18 +1,18 @@
-package dev.dipesh.gui;
+package dev.dipesh.gui.components;
 
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.dom.Element;
 
-public class AudioPlayer extends Div {
+public class AudioPlayerComponent extends Div {
 
     private Element audioElement = new Element("audio");
     private Image albumCover = new Image();
     private Span titleSpan = new Span();
     private Span lyricsSpan = new Span();
 
-    public AudioPlayer() {
+    public AudioPlayerComponent() {
         audioElement.setAttribute("controls", true);
 
         // Wrap the audio element in a Div for better control over styling
