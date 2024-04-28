@@ -7,7 +7,9 @@ import dev.dipesh.DTO.PromptRequestDTO;
 import dev.dipesh.entity.Song;
 import dev.dipesh.service.ExternalAPIService;
 import dev.dipesh.service.SongService;
+import dev.dipesh.service.UserContextService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +23,8 @@ public class SongController {
     private SongService songService;
     @Autowired
     private ExternalAPIService externalAPIService;
+    @Autowired
+    private UserContextService userContextService;
 
     @PostMapping("/generate")
     public ResponseEntity<?> generateSong(@RequestBody PromptRequestDTO promptRequestDTO) throws JsonProcessingException {
@@ -65,8 +69,22 @@ public class SongController {
     }
 
     @GetMapping("/trending")
-    public ResponseEntity<List<Song>> getTrendingSongs() {
-        List<Song> trendingSongs = songService.getTrendingSongs(10);
+    public ResponseEntity<Page<Song>> getTrendingSongs() {
+        Page<Song> trendingSongs = songService.getTrendingSongs(10);
         return ResponseEntity.ok(trendingSongs);
+    }
+
+    @PostMapping("/like-unlike/{songId}")
+    public ResponseEntity<?> likeOrUnlikeSong(@PathVariable String songId) {
+        String userId = userContextService.getCurrentLoggedInUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User must be logged in to like a song.");
+        }
+        boolean result = songService.likeOrUnlikeSong(songId, userId);
+        if (result) {
+            return ResponseEntity.ok("Song liked successfully.");
+        } else {
+            return ResponseEntity.ok("Song unliked successfully.");
+        }
     }
 }

@@ -46,10 +46,15 @@ public class MySongsView extends VerticalLayout  {
 
         // Image column
         grid.addColumn(new ComponentRenderer<>(song -> {
-            Image image = new Image(song.getImageUrl(), "Album cover");
-            image.setWidth("100px"); // Set width to make images consistent
-            image.setHeight("100px");
-            return image;
+            if (song.getImageUrl() != null) {
+
+                Image image = new Image(song.getImageUrl(), "Album cover");
+                image.setWidth("100px"); // Set width to make images consistent
+                image.setHeight("100px");
+                return image;
+            }
+
+            return null;
         })).setHeader("Cover").setAutoWidth(true);
 
         // Title column
@@ -70,6 +75,23 @@ public class MySongsView extends VerticalLayout  {
             return playButton;
         })).setHeader("Audio");
 
+        //Like Column
+        grid.addColumn(new ComponentRenderer<>(song -> {
+            String userId = getCurrentUserId(); // Retrieve the logged-in user's ID
+            boolean isLiked = songService.isLiked(song.getSongId(), userId);
+            Button likeButton = new Button(isLiked ? "Unlike" : "Like");
+            likeButton.addClickListener(click -> {
+                boolean success = songService.likeOrUnlikeSong(song.getSongId(), userId);
+                if (success) {
+                    likeButton.setText(isLiked ? "Like" : "Unlike"); // Toggle the text based on the current like status
+                    songService.likeOrUnlikeSong(song.getSongId(), userId); // Optimistically update the like status
+                    grid.getDataProvider().refreshItem(song); // Refresh the item in the grid
+                }
+            });
+
+            likeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            return likeButton;
+        })).setHeader("Like/Unlike").setAutoWidth(true);
 
 
         // Adjust the size of the grid's columns

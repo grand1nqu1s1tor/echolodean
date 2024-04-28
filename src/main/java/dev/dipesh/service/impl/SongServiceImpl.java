@@ -4,12 +4,19 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.dipesh.entity.Song;
+import dev.dipesh.entity.SongLike;
+import dev.dipesh.entity.User;
+import dev.dipesh.repository.SongLikeRepository;
 import dev.dipesh.repository.SongRepository;
+import dev.dipesh.repository.UserRepository;
 import dev.dipesh.service.SongService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -19,6 +26,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,6 +36,10 @@ public class SongServiceImpl implements SongService {
     private SongRepository songRepository;
     @Autowired
     private HttpClient httpClient;
+    @Autowired
+    private SongLikeRepository songLikeRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     private static final Logger LOGGER = Logger.getLogger(SongService.class.getName());
     private final String baseUrl = "https://api.sunoaiapi.com/api/v1/";
@@ -156,13 +168,74 @@ public class SongServiceImpl implements SongService {
     }
 
 
+    //CHange to findGeneratedSongsByUserId
     @Override
     public List<Song> findSongsByUserId(String userId) {
         return songRepository.findByUserId(userId);
     }
 
     @Override
-    public List<Song> getTrendingSongs(int limit) {
+    public Page<Song> getTrendingSongs(int limit) {
         return songRepository.findTopTrendingSongs(PageRequest.of(0, limit));
     }
+    @Override
+    public List<Song> getLikedSongs(){
+        return songRepository.findLikedSongsByUserId(getCurrentLoggedInUserId());
+    }
+
+    //Helper method to retrieve user
+    public String getCurrentLoggedInUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null; // or throw an exception if a user must be logged in
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) principal;
+            return userDetails.getUsername(); // assuming the username is the user id
+        } else if (principal instanceof String) {
+            return (String) principal; // for anonymous user you might get "anonymousUser" as a String
+        }
+
+        return null; // or some default value or handle differently
+    }
+
+
+    @Transactional
+    public boolean likeOrUnlikeSong(String songId, String userId) {
+        // Find the Song and User entities
+        Song song = songRepository.findById(songId).orElse(null);
+        User user = userRepository.findById(userId).orElse(null);
+        if (song == null || user == null) {
+            // Song or user does not exist, cannot proceed
+            return false;
+        }
+        // Check if the like already exists
+        Optional<SongLike> existingLike = songLikeRepository.findBySongAndUser(song, user);
+        if (existingLike.isPresent()) {
+            // User already liked this song, so unlike it
+            songLikeRepository.delete(existingLike.get());
+            return false; // You can also choose to return 'true' to indicate a successful unlike operation
+        } else {
+            // Like the song since it's not already liked
+            SongLike newLike = new SongLike();
+            newLike.setSong(song);
+            newLike.setUser(user);
+            songLikeRepository.save(newLike);
+            return true;
+        }
+    }
+
+    @Override
+    public boolean isLiked(String songId, String userId) {
+        Song song = songRepository.findById(songId).orElse(null);
+        User user = userRepository.findById(userId).orElse(null);
+        if (song == null || user == null) {
+            return false;
+        }
+        return songLikeRepository.existsBySongAndUser(song, user);
+    }
+
 }

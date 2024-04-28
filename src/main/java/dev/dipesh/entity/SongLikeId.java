@@ -1,34 +1,28 @@
 package dev.dipesh.entity;
 
+import jakarta.persistence.Embeddable;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.Serializable;
 import java.util.Objects;
 
+@Embeddable
+@Setter
+@Getter
+@EqualsAndHashCode
 public class SongLikeId implements Serializable {
-    private String song; // Corresponds to the name of the attribute in SongLike
-    private String user; // Corresponds to the name of the attribute in SongLike
+    private String user;
+    private String song; //
 
-    // Default constructor
+    // Constructors
     public SongLikeId() {}
 
-    // Constructor
-    public SongLikeId(String song, String user) {
-        this.song = song;
+    public SongLikeId(String userId, String songId) {
         this.user = user;
+        this.song = song;
     }
 
-    // Getters and setters omitted for brevity
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SongLikeId that = (SongLikeId) o;
-        return Objects.equals(song, that.song) &&
-                Objects.equals(user, that.user);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(song, user);
-    }
 }
+

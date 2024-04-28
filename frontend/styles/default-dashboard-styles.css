@@ -1,5 +1,14 @@
 /* Additional styles for the new components */
 
+
+.song-card {
+    min-height: 150px; /* or any other appropriate value */
+}
+
+.song-title {
+    font-weight: bold;
+}
+
 .dashboard {
     display: flex;
     flex-direction: column;

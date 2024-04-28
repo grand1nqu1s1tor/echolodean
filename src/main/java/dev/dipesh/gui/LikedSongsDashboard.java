@@ -6,26 +6,24 @@ import com.vaadin.flow.router.Route;
 import dev.dipesh.entity.Song;
 import dev.dipesh.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
-@Route("trending")
-public class TrendingMusicDashboard extends VerticalLayout {
+@Route("liked-songs")
+public class LikedSongsDashboard extends VerticalLayout {
 
     private Grid<Song> grid = new Grid<>(Song.class);
 
     private final SongService songService;
 
     @Autowired
-    public TrendingMusicDashboard(SongService songService) {
+    public LikedSongsDashboard(SongService songService) {
         this.songService = songService;
         setupGrid();
         add(grid);
-        updateList();  // Populate grid with data
+        updateList();
     }
 
 
@@ -35,8 +33,8 @@ public class TrendingMusicDashboard extends VerticalLayout {
     }
 
     private void updateList() {
-        // Adjust the pagination if needed, here assumed it fetches first 10 songs
-        Page<Song> trendingMusic = songService.getTrendingSongs(10);
-        grid.setItems(trendingMusic.getContent());
+        List<Song> likedMusic = songService.getLikedSongs();
+        grid.setItems(likedMusic);
     }
 }
+

@@ -20,6 +20,7 @@ import java.util.Date;
 public class Song {
 
     @Id
+    @Column(name = "song_id")
     @JsonProperty("song_id") // Match JSON property to the Java field
     private String songId;
 

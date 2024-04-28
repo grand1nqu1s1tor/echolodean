@@ -30,8 +30,8 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/", "/login", "/error", "/api/get-user-code", "/pre-login", "/VAADIN/**", "/frontend/**", "/api/login","/home").permitAll()
-                        .anyRequest().authenticated()
+                        //.requestMatchers("/", "/login", "/error", "/api/get-user-code", "/pre-login", "/VAADIN/**", "/frontend/**", "/api/login","/home").permitAll()
+                        .anyRequest().permitAll()/*.authenticated()*/
                 )
                 .oauth2Login(oauth2Login -> oauth2Login
                         .clientRegistrationRepository(clientRegistrationRepository())

@@ -16,8 +16,8 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
 import dev.dipesh.entity.Song;
 import dev.dipesh.service.SongService;
-
-import java.util.List;
+import dev.dipesh.service.UserService;
+import org.springframework.data.domain.Page;
 
 import static dev.dipesh.gui.SecurityUtils.isUserLoggedIn;
 
@@ -26,12 +26,14 @@ import static dev.dipesh.gui.SecurityUtils.isUserLoggedIn;
 @CssImport("./styles/default-dashboard-styles.css")
 public class PublicDashboardView extends VerticalLayout {
 
-    private final SongService songService; // Add your service here
+    private final SongService songService;
+    private final UserService userService;
     private HorizontalLayout linkContainer;
     private final SecuredViewAccessChecker accessChecker;
 
-    public PublicDashboardView(SongService songService, SecuredViewAccessChecker accessChecker) {
+    public PublicDashboardView(SongService songService, UserService userService, SecuredViewAccessChecker accessChecker) {
         this.songService = songService; // Initialize your service
+        this.userService = userService;
         this.accessChecker = accessChecker;
         addClassName("dashboard");
 
@@ -63,8 +65,8 @@ public class PublicDashboardView extends VerticalLayout {
         header.setWidth("100%");
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
-        Image logo = new Image("frontend/images/logo.png", "Logo");
-        logo.setHeight("50px");
+        Image logo = new Image("images/logo.png", "Logo");
+        logo.setHeight("100px");
 
         TextField searchField = new TextField();
         searchField.setPlaceholder("Search...");
@@ -73,7 +75,6 @@ public class PublicDashboardView extends VerticalLayout {
         Button signInButton = new Button("Sign In", new Icon(VaadinIcon.SIGN_IN));
         signInButton.addClassName("sign-in-button");
         signInButton.addClickListener(event -> {
-            // call your login method here
             UI.getCurrent().navigate(LoginView.class);
         });
         header.add(logo, searchField, signInButton);
@@ -130,7 +131,7 @@ public class PublicDashboardView extends VerticalLayout {
         trendingLayout.setWidthFull();
 
         // Fetch the trending songs using the songService
-        List<Song> trendingSongs = songService.getTrendingSongs(10); // Adjust the number as needed
+        Page<Song> trendingSongs = songService.getTrendingSongs(10); // Adjust the number as needed
 
         for (Song song : trendingSongs) {
             HorizontalLayout songCard = createSongCard(song);
@@ -143,59 +144,64 @@ public class PublicDashboardView extends VerticalLayout {
     private HorizontalLayout createSongCard(Song song) {
         HorizontalLayout cardLayout = new HorizontalLayout();
         cardLayout.addClassName("song-card");
-        cardLayout.setWidth("100%");
-        cardLayout.setPadding(true);
+        cardLayout.setWidthFull();
         cardLayout.setAlignItems(Alignment.CENTER);
+        cardLayout.setJustifyContentMode(JustifyContentMode.START);
+        cardLayout.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
+        cardLayout.getStyle().set("border-radius", "var(--lumo-border-radius)");
+        cardLayout.getStyle().set("padding", "var(--lumo-space-m)");
+        cardLayout.getStyle().set("margin", "var(--lumo-space-m)");
+        cardLayout.getStyle().set("box-shadow", "var(--lumo-box-shadow-xs)");
 
-        Image albumCover = new Image(song.getImageUrl(), "Album cover");
+
+        Image albumCover = song.getImageUrl() != null && !song.getImageUrl().isEmpty()
+                ? new Image(song.getImageUrl(), "Album cover")
+                : new Image("images/default_cover.png", "Default album cover");
         albumCover.setWidth("100px");
         albumCover.setHeight("100px");
 
-        VerticalLayout songInfo = new VerticalLayout();
-        songInfo.addClassName("song-info");
-        songInfo.setPadding(false);
-        songInfo.setSpacing(false);
+        VerticalLayout infoLayout = new VerticalLayout();
+        infoLayout.addClassName("info-layout");
+        infoLayout.setSpacing(false);
+        infoLayout.setPadding(false);
 
         Span title = new Span(song.getTitle());
         title.addClassName("song-title");
+        title.getStyle().set("font-weight", "bold");
+        title.getStyle().set("font-size", "var(--lumo-font-size-l)");
 
-        Span likes = new Span(String.valueOf(song) + " likes"); // Assuming you have a likes field
-        likes.addClassName("song-likes");
+        Span artist = new Span("Artist Name: " + userService.getUserById(song.getUserId()).getUsername() ); // Replace with the actual artist name if available
+        artist.addClassName("song-artist");
 
-        songInfo.add(title, likes);
+        Button playButton = new Button(new Icon(VaadinIcon.PLAY));
+        playButton.addClassName("play-button");
+        // Add click listener for playButton if needed
 
-        cardLayout.add(albumCover, songInfo);
+        infoLayout.add(title, artist, playButton);
 
-        // You can add a click listener to each card if you want to perform an action when clicked
-        // Attach a click listener to the card
+        cardLayout.add(albumCover, infoLayout);
+
         cardLayout.addClickListener(event -> {
-            // Here, check if the user is logged in. This check depends on your authentication logic.
-            // For example, if you use Spring Security, you can check if the user is authenticated.
-            // If the user is not logged in, navigate to the WelcomeView.
-            //if (!isUserLoggedIn()) { // Replace with your actual login check
             UI.getCurrent().navigate(LoginView.class);
-            //} else {
-            // If the user is logged in, perform the desired action, such as navigating to a detailed song view.
-            // You could pass parameters to the detailed view using the navigate method as follows:
-            UI.getCurrent().navigate(LoginView.class);
-            //}
         });
-
         return cardLayout;
     }
 
 
     private void initLinkContainer() {
+
         // Router links
         RouterLink homeLink = new RouterLink("Home", UserDashboardView.class);
         RouterLink mySongsLink = new RouterLink("My Songs", MySongsView.class);
+
         // Styling links
         homeLink.addClassName("router-link");
         mySongsLink.addClassName("router-link");
+
         // Link container for layout control
         linkContainer = new HorizontalLayout(homeLink, mySongsLink);
         linkContainer.addClassName("link-container");
-        linkContainer.setVisible(false); // Initially invisible, will be made visible after login
+        linkContainer.setVisible(false);
     }
 
     public void updateVisibilityBasedOnAuthentication() {
