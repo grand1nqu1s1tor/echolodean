@@ -3,6 +3,7 @@ package dev.dipesh.service.impl;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.dipesh.DTO.SongResponseDTO;
 import dev.dipesh.entity.Song;
 import dev.dipesh.entity.SongLike;
 import dev.dipesh.entity.User;
@@ -116,7 +117,7 @@ public class SongServiceImpl implements SongService {
 
         if (song != null) {
             // Here you would fetch the actual userId of the logged-in user, not just "currentUser"
-            song.setUserId("currentUser");
+            song.setUserId("31jz2umx7gs26nk3lh3w6lfy33ry");
             songRepository.save(song);
         }
 
@@ -179,29 +180,9 @@ public class SongServiceImpl implements SongService {
         return songRepository.findTopTrendingSongs(PageRequest.of(0, limit));
     }
     @Override
-    public List<Song> getLikedSongs(){
-        return songRepository.findLikedSongsByUserId(getCurrentLoggedInUserId());
+    public List<Song> getLikedSongsByUserId(String userId){
+        return songRepository.findLikedSongsByUserId(userId);
     }
-
-    //Helper method to retrieve user
-    public String getCurrentLoggedInUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return null; // or throw an exception if a user must be logged in
-        }
-
-        Object principal = authentication.getPrincipal();
-
-        if (principal instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) principal;
-            return userDetails.getUsername(); // assuming the username is the user id
-        } else if (principal instanceof String) {
-            return (String) principal; // for anonymous user you might get "anonymousUser" as a String
-        }
-
-        return null; // or some default value or handle differently
-    }
-
 
     @Transactional
     public boolean likeOrUnlikeSong(String songId, String userId) {
@@ -238,4 +219,25 @@ public class SongServiceImpl implements SongService {
         return songLikeRepository.existsBySongAndUser(song, user);
     }
 
+
+    public List<Song> findSongsWithMissingMetadata() {
+        // This would be a query in your repository to find songs where audio_url or image_url is null
+        return songRepository.findSongsWithMissingMetadata();
+    }
+
+    @Transactional
+    public void updateSongDetails(String songId, SongResponseDTO details) {
+        Song song = songRepository.findById(songId).orElse(null);
+        if (song != null && details != null) {
+            // Assuming details contains fields like audioUrl, imageUrl, etc.
+            song.setAudioUrl(details.getData().getAudioUrl());
+            song.setImageUrl(details.getData().getImageUrl());
+            song.setTitle(details.getData().getTitle());
+            song.setLyrics(details.getData().getMetaPrompt());
+            songRepository.save(song);
+        }
+    }
+
 }
+
+

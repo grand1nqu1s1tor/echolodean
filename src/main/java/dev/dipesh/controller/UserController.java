@@ -2,6 +2,7 @@ package dev.dipesh.controller;
 
 import dev.dipesh.entity.User;
 import dev.dipesh.service.UserService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
+
+    @Autowired
+    private HttpSession session;
 
     @Autowired
     public UserController(UserService userService) {
@@ -36,5 +40,11 @@ public class UserController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+
+    @GetMapping("/current-user")
+    public User getCurrentUser() {
+        return (User) session.getAttribute("user");
     }
 }

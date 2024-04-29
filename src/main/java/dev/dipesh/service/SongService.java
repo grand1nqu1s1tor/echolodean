@@ -1,5 +1,6 @@
 package dev.dipesh.service;
 
+import dev.dipesh.DTO.SongResponseDTO;
 import dev.dipesh.entity.Song;
 import org.springframework.data.domain.Page;
 
@@ -19,9 +20,14 @@ public interface SongService {
 
     public Page<Song> getTrendingSongs(int limit);
 
-    public List<Song> getLikedSongs();
+    public List<Song> getLikedSongsByUserId(String userId);
 
     public boolean likeOrUnlikeSong(String songId, String userId);
 
     boolean isLiked(String songId, String userId);
+
+    public List<Song> findSongsWithMissingMetadata();
+
+    public void updateSongDetails(String songId, SongResponseDTO details);
+
 }

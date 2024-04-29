@@ -1,5 +1,6 @@
 package dev.dipesh.gui;
 
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
@@ -26,11 +27,18 @@ public class ProfileDashboard extends VerticalLayout {
     }
 
     private void logout() {
-        // We'll perform the logout using Spring Security's logout handler
+        // Perform logout using Vaadin's session and security context handling
+        VaadinServletRequest request = VaadinServletRequest.getCurrent();
+        VaadinService.getCurrentRequest().getWrappedSession().invalidate();
         SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
-        logoutHandler.logout(
-                VaadinServletRequest.getCurrent().getHttpServletRequest(), null, null);
-        VaadinService.getCurrentResponse().setHeader("Location", VaadinService.getCurrentRequest().getContextPath());
-        VaadinService.getCurrentResponse().setStatus(302);
+        logoutHandler.logout(request, null, null); // Pass null as response because it's managed by Vaadin
+
+        UI.getCurrent().getPage().setLocation("/");
+        // After logout, redirect the user
+        /*getUI().ifPresent(ui -> {
+            ui.getPage().setLocation("/login"); // Redirect to login or root page
+        });*/
     }
+
+
 }

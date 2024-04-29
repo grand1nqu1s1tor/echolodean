@@ -4,6 +4,7 @@ import dev.dipesh.config.SpotifyConfiguration;
 import dev.dipesh.service.SpotifyAuthorizationService;
 import dev.dipesh.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,7 +67,7 @@ public class SpotifyController {
 
 
     @GetMapping("/get-user-code")
-    public void getSpotifyUserCode(@RequestParam("code") String userCode, RedirectAttributes redirectAttributes, HttpServletResponse response) {
+    public void getSpotifyUserCode(@RequestParam("code") String userCode, RedirectAttributes redirectAttributes, HttpServletResponse response, HttpSession session) {
         try {
             SpotifyApi spotifyApi = spotifyConfiguration.getSpotifyObject();
             AuthorizationCodeRequest authorizationCodeRequest = spotifyApi.authorizationCode(userCode).build();
@@ -80,7 +81,12 @@ public class SpotifyController {
             User user = profileRequest.execute();
 
             // Process user details and implement user-specific logic if necessary
-            processUserDetails(user);
+            dev.dipesh.entity.User localUser = processUserDetails(user);
+
+            // Store user details in session
+            session.setAttribute("user", localUser); // You may want to store a custom user object instead
+            session.setAttribute("accessToken", authorizationCodeCredentials.getAccessToken());
+            session.setAttribute("refreshToken", authorizationCodeCredentials.getRefreshToken());
 
             //Debug
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -99,7 +105,7 @@ public class SpotifyController {
         }
     }
 
-    private void processUserDetails(User spotifyUser) {
+    private dev.dipesh.entity.User processUserDetails(User spotifyUser) {
         dev.dipesh.entity.User localUser = userService.getUserById(spotifyUser.getId());
         if (localUser == null) {
             localUser = new dev.dipesh.entity.User();
@@ -108,5 +114,6 @@ public class SpotifyController {
             localUser.setEmail(spotifyUser.getEmail());
         }
         userService.saveUser(localUser);
+        return localUser;
     }
 }

@@ -8,20 +8,25 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.spring.annotation.UIScope;
 import dev.dipesh.entity.Song;
+import dev.dipesh.gui.components.SongPromptCard;
 import dev.dipesh.service.SongService;
 import dev.dipesh.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 
 import static dev.dipesh.gui.SecurityUtils.isUserLoggedIn;
 
 @Route("")
+@UIScope
 @PageTitle("Music Dashboard")
 @CssImport("./styles/default-dashboard-styles.css")
 public class PublicDashboardView extends VerticalLayout {
@@ -29,34 +34,53 @@ public class PublicDashboardView extends VerticalLayout {
     private final SongService songService;
     private final UserService userService;
     private HorizontalLayout linkContainer;
-    private final SecuredViewAccessChecker accessChecker;
+    private final SongPromptCard songPromptCard;
 
-    public PublicDashboardView(SongService songService, UserService userService, SecuredViewAccessChecker accessChecker) {
-        this.songService = songService; // Initialize your service
+    @Autowired
+    public PublicDashboardView(SongService songService, UserService userService, SongPromptCard songPromptCard) {
+        this.songService = songService;
         this.userService = userService;
-        this.accessChecker = accessChecker;
+        this.songPromptCard = songPromptCard;
         addClassName("dashboard");
 
-        // Header
+        // Initialize layout components
         HorizontalLayout header = createHeader();
-        // Menu
         VerticalLayout menu = createMenu();
-        // Main content area
-        HorizontalLayout mainContent = new HorizontalLayout(menu, createTrendingSection());
+        FlexLayout mainContent = new FlexLayout(createSongListLayout(), songPromptCard);
         mainContent.setSizeFull();
         mainContent.addClassName("main-content");
-        // Footer
-        HorizontalLayout footer = createFooter();
+        mainContent.setFlexDirection(FlexLayout.FlexDirection.ROW); // Set the flex direction to row
 
-        // Initialize link container with navigation links
+
+        HorizontalLayout footer = createFooter();
         initLinkContainer();
 
         // Adding components to the root layout
         add(header, mainContent, footer, linkContainer);
         setSizeFull();
 
-        // Conditionally add the link container based on authentication
+        // Update UI based on user authentication state
         updateVisibilityBasedOnAuthentication();
+    }
+
+
+    private VerticalLayout createSongListLayout() {
+        // This method will just create the layout for the song list
+        VerticalLayout songListLayout = new VerticalLayout();
+        songListLayout.addClassName("song-list");
+        songListLayout.setSizeFull();
+
+        // Add the scrolling song cards to this layout
+        // You might need to set a max height and set overflow-y to auto for scrolling
+        songListLayout.getStyle().set("max-height", "100%").set("overflow-y", "auto");
+
+        Page<Song> trendingSongs = songService.getTrendingSongs(10);
+        for (Song song : trendingSongs) {
+            HorizontalLayout songCard = createSongCard(song);
+            songListLayout.add(songCard);
+        }
+
+        return songListLayout;
     }
 
     private HorizontalLayout createHeader() {
@@ -103,10 +127,9 @@ public class PublicDashboardView extends VerticalLayout {
         //Enter Song Title
         searchButton.addClickListener(event -> {
             // call your login method here
-            //UI.getCurrent().navigate(MainView.class);
+            UI.getCurrent().navigate(LoginView.class);
 
         });
-
         menu.add(homeButton, searchButton);
         return menu;
     }
@@ -170,7 +193,7 @@ public class PublicDashboardView extends VerticalLayout {
         title.getStyle().set("font-weight", "bold");
         title.getStyle().set("font-size", "var(--lumo-font-size-l)");
 
-        Span artist = new Span("Artist Name: " + userService.getUserById(song.getUserId()).getUsername() ); // Replace with the actual artist name if available
+        Span artist = new Span("Artist Name: " + userService.getUserById(song.getUserId()).getUsername()); // Replace with the actual artist name if available
         artist.addClassName("song-artist");
 
         Button playButton = new Button(new Icon(VaadinIcon.PLAY));
@@ -191,7 +214,7 @@ public class PublicDashboardView extends VerticalLayout {
     private void initLinkContainer() {
 
         // Router links
-        RouterLink homeLink = new RouterLink("Home", UserDashboardView.class);
+        RouterLink homeLink = new RouterLink("Home",UserDashboardView.class);
         RouterLink mySongsLink = new RouterLink("My Songs", MySongsView.class);
 
         // Styling links

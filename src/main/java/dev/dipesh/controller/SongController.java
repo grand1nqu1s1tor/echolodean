@@ -7,7 +7,6 @@ import dev.dipesh.DTO.PromptRequestDTO;
 import dev.dipesh.entity.Song;
 import dev.dipesh.service.ExternalAPIService;
 import dev.dipesh.service.SongService;
-import dev.dipesh.service.UserContextService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -24,10 +23,11 @@ public class SongController {
     @Autowired
     private ExternalAPIService externalAPIService;
     @Autowired
-    private UserContextService userContextService;
+    private UserController userController;
 
     @PostMapping("/generate")
     public ResponseEntity<?> generateSong(@RequestBody PromptRequestDTO promptRequestDTO) throws JsonProcessingException {
+        //getSongsByIds("72bc3e58-bf6b-4aa2-9490-c579779671e1");
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(promptRequestDTO);
         ApiResponseDTO sunoApiResponse = externalAPIService.postGenerateDescription("https://api.sunoaiapi.com/api/v1/gateway/generate/gpt_desc", requestBody);
@@ -74,9 +74,10 @@ public class SongController {
         return ResponseEntity.ok(trendingSongs);
     }
 
+    //TODO
     @PostMapping("/like-unlike/{songId}")
     public ResponseEntity<?> likeOrUnlikeSong(@PathVariable String songId) {
-        String userId = userContextService.getCurrentLoggedInUserId();
+        String userId = userController.getCurrentUser().getUserId();
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User must be logged in to like a song.");
         }

@@ -7,10 +7,9 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import dev.dipesh.controller.UserController;
 import dev.dipesh.entity.Song;
 import dev.dipesh.gui.components.AudioPlayerComponent;
 import dev.dipesh.service.SongService;
@@ -20,17 +19,20 @@ import java.util.List;
 @Route("my-songs")
 @PageTitle("My Songs")
 @CssImport("./styles/styles.css")
-public class MySongsView extends VerticalLayout  {
+public class MySongsView extends VerticalLayout {
 
     private final SongService songService;
     //private final SecuredViewAccessChecker accessChecker;
     private Grid<Song> grid = new Grid<>(Song.class);
 
+    private final UserController userController;
+
     private AudioPlayerComponent audioPlayerComponent = new AudioPlayerComponent(); // Here is the custom audio player
 
 
-    public MySongsView(SongService songService, SecuredViewAccessChecker accessChecker) {
+    public MySongsView(SongService songService, UserController userController) {
         this.songService = songService;
+        this.userController = userController;
         setSizeFull();
         configureGrid();
         add(grid);
@@ -71,20 +73,21 @@ public class MySongsView extends VerticalLayout  {
                 audioPlayerComponent.setLyrics(song.getLyrics());
                 audioPlayerComponent.setVisible(true); // Show the audio player
             });
-            playButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            playButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
             return playButton;
         })).setHeader("Audio");
 
         //Like Column
         grid.addColumn(new ComponentRenderer<>(song -> {
             String userId = getCurrentUserId(); // Retrieve the logged-in user's ID
-            boolean isLiked = songService.isLiked(song.getSongId(), userId);
-            Button likeButton = new Button(isLiked ? "Unlike" : "Like");
+            Button likeButton = new Button(songService.isLiked(song.getSongId(), userId) ? "Unlike" : "Like");
+
             likeButton.addClickListener(click -> {
                 boolean success = songService.likeOrUnlikeSong(song.getSongId(), userId);
                 if (success) {
-                    likeButton.setText(isLiked ? "Like" : "Unlike"); // Toggle the text based on the current like status
-                    songService.likeOrUnlikeSong(song.getSongId(), userId); // Optimistically update the like status
+                    // Re-check the like state after the operation
+                    boolean newLikeStatus = songService.isLiked(song.getSongId(), userId);
+                    likeButton.setText(newLikeStatus ? "Unlike" : "Like"); // Update the text to the new state
                     grid.getDataProvider().refreshItem(song); // Refresh the item in the grid
                 }
             });
@@ -92,7 +95,6 @@ public class MySongsView extends VerticalLayout  {
             likeButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
             return likeButton;
         })).setHeader("Like/Unlike").setAutoWidth(true);
-
 
         // Adjust the size of the grid's columns
         grid.getColumns().forEach(col -> {
@@ -122,8 +124,7 @@ public class MySongsView extends VerticalLayout  {
     }
 
     private String getCurrentUserId() {
-        // Obtain the current user's ID from the security context or however you store the current user
-        // This is just a placeholder, and you will need to replace it with your actual user ID retrieval logic
-        return "currentUser";
+        return userController.getCurrentUser().getUserId();
+
     }
 }

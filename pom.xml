@@ -43,6 +43,7 @@
             <artifactId>vaadin-spring-boot-starter</artifactId>
             <version>24.3.9</version>
         </dependency>
+
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>

@@ -25,13 +25,14 @@ public class SecurityConfig {
     @Value("${redirect.server.ip}")
     private String redirectServerIp;
 
-//It was a pain in my ass to resolve the security config since the/ home endpoint was protected and it kept redirecting to Spotify for the OAuth flow to complete and was looping.
+//It was a pain in my ass to resolve the security config since the /home endpoint was protected and it kept redirecting to Spotify for the OAuth flow to complete and was looping.
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeRequests(authorizeRequests -> authorizeRequests
-                        //.requestMatchers("/", "/login", "/error", "/api/get-user-code", "/pre-login", "/VAADIN/**", "/frontend/**", "/api/login","/home").permitAll()
-                        .anyRequest().permitAll()/*.authenticated()*/
+                        .requestMatchers("/", "/login", "/error", "/api/get-user-code", "/pre-login", "/VAADIN/**", "/frontend/**", "/api/login","/home").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2Login -> oauth2Login
                         .clientRegistrationRepository(clientRegistrationRepository())
@@ -53,7 +54,7 @@ public class SecurityConfig {
                 .clientSecret(clientSecret)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .redirectUri("http://localhost:8080/api/get-user-code") // Ensure this matches the redirect URI used in SpotifyConfiguration
-                .scope("user-read-email", "user-read-private", "user-read-birthdate", "user-read-playback-state", "user-read-recently-played", "user-library-read", "playlist-read-private", "playlist-read-collaborative", "user-top-read", "user-follow-read")
+                .scope("user-read-email", "user-read-private"/*, "user-read-birthdate", "user-read-playback-state", "user-read-recently-played", "user-library-read", "playlist-read-private", "playlist-read-collaborative", "user-top-read", "user-follow-read"*/)
                 .authorizationUri("https://accounts.spotify.com/authorize")
                 .tokenUri("https://accounts.spotify.com/api/token")
                 .build();

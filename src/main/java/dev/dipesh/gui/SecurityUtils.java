@@ -11,6 +11,6 @@ public final class SecurityUtils {
 
     public static boolean isUserLoggedIn() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated();
+        return authentication != null && (authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated();
     }
 }
