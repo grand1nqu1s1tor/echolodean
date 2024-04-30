@@ -25,11 +25,14 @@ public class UserDashboardView extends VerticalLayout {
     private Map<Tab, Component> tabsToPages = new HashMap<>();
     private final SongService songService;
     private final UserController userController;
+    private final SongUtilityService songUtilityService;
+
 
     @Autowired
-    public UserDashboardView(SongPromptCard songPromptCard, SongService songService, UserController userController) {
+    public UserDashboardView(SongPromptCard songPromptCard, SongService songService, UserController userController, SongUtilityService songUtilityService) {
         this.userController = userController;
         this.songService = songService;
+        this.songUtilityService = songUtilityService;
 
         // User greeting
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -45,10 +48,10 @@ public class UserDashboardView extends VerticalLayout {
         Tab likedSongsTab = new Tab("All you like");
         Tab profileTab = new Tab("Profile");
 
-        Component createSongDashBoard = songPromptCard; // Use SongPromptCard for creating songs
-        Component trendingMusicDashboard = new TrendingMusicDashboard(songService);
+        Component createSongDashBoard = songPromptCard;
+        Component trendingMusicDashboard = new TrendingMusicDashboard(songService, this.songUtilityService);
         Component mySongsDashBoard = new MySongsView(songService, userController);
-        Component likedSongsDashBoard = new LikedSongsDashboard(songService, userController);
+        Component likedSongsDashBoard = new LikedSongsDashboard(songService, userController, songUtilityService);
         Component profileDashBoard = new ProfileDashboard();
 
         tabsToPages.put(createSongTab, createSongDashBoard);
@@ -60,15 +63,23 @@ public class UserDashboardView extends VerticalLayout {
         tabs.add(createSongTab, trendingMusicTab, mySongsTab, likedSongsTab, profileTab);
         tabs.setFlexGrowForEnclosedTabs(1);
 
+        // Add tab change listener
         tabs.addSelectedChangeListener(event -> {
             Tab selectedTab = event.getSelectedTab();
             Component selectedContent = tabsToPages.get(selectedTab);
+            if (selectedContent instanceof UpdatableTabContent) {
+                ((UpdatableTabContent) selectedContent).updateContent();
+            }
             removeAll(); // Clear existing components
             add(greeting, tabs, selectedContent); // Add tabs and the selected component
         });
 
         add(greeting, tabs); // Initially add greeting and tabs without content
         setSelectedTab(createSongTab); // Optionally set an initial tab
+    }
+
+    public interface UpdatableTabContent {
+        void updateContent();
     }
 
     private void setSelectedTab(Tab tab) {

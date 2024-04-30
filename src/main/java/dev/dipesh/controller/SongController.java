@@ -27,12 +27,11 @@ public class SongController {
 
     @PostMapping("/generate")
     public ResponseEntity<?> generateSong(@RequestBody PromptRequestDTO promptRequestDTO) throws JsonProcessingException {
-        //getSongsByIds("72bc3e58-bf6b-4aa2-9490-c579779671e1");
         ObjectMapper objectMapper = new ObjectMapper();
         String requestBody = objectMapper.writeValueAsString(promptRequestDTO);
         ApiResponseDTO sunoApiResponse = externalAPIService.postGenerateDescription("https://api.sunoaiapi.com/api/v1/gateway/generate/gpt_desc", requestBody);
 
-        if (!sunoApiResponse.isSuccessful()) {
+        if (sunoApiResponse.isSuccessful()) {
             return ResponseEntity.badRequest().body(sunoApiResponse.getErrorMessage());
         }
 

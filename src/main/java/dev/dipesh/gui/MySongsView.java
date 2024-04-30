@@ -19,15 +19,15 @@ import java.util.List;
 @Route("my-songs")
 @PageTitle("My Songs")
 @CssImport("./styles/styles.css")
-public class MySongsView extends VerticalLayout {
+public class MySongsView extends VerticalLayout implements UserDashboardView.UpdatableTabContent{
 
-    private final SongService songService;
+        private final SongService songService;
     //private final SecuredViewAccessChecker accessChecker;
     private Grid<Song> grid = new Grid<>(Song.class);
 
     private final UserController userController;
 
-    private AudioPlayerComponent audioPlayerComponent = new AudioPlayerComponent(); // Here is the custom audio player
+    private AudioPlayerComponent audioPlayerComponent = new AudioPlayerComponent();
 
 
     public MySongsView(SongService songService, UserController userController) {
@@ -88,7 +88,7 @@ public class MySongsView extends VerticalLayout {
                     // Re-check the like state after the operation
                     boolean newLikeStatus = songService.isLiked(song.getSongId(), userId);
                     likeButton.setText(newLikeStatus ? "Unlike" : "Like"); // Update the text to the new state
-                    grid.getDataProvider().refreshItem(song); // Refresh the item in the grid
+                    grid.getDataProvider().refreshItem(song);
                 }
             });
 
@@ -96,13 +96,11 @@ public class MySongsView extends VerticalLayout {
             return likeButton;
         })).setHeader("Like/Unlike").setAutoWidth(true);
 
-        // Adjust the size of the grid's columns
         grid.getColumns().forEach(col -> {
             col.setResizable(true);
             col.getElement().getStyle().set("text-align", "center");
         });
 
-        // Adjust the height of the rows
         grid.setAllRowsVisible(true);
     }
 
@@ -111,20 +109,24 @@ public class MySongsView extends VerticalLayout {
     private void playSong(Song song) {
         audioPlayerComponent.setSource(song.getAudioUrl());
         audioPlayerComponent.setLyrics(song.getLyrics());
-        audioPlayerComponent.setAlbumCover(song.getImageUrl()); // Set the album cover
-        audioPlayerComponent.setTitle(song.getTitle()); // Set the song title
+        audioPlayerComponent.setAlbumCover(song.getImageUrl());
+        audioPlayerComponent.setTitle(song.getTitle());
         audioPlayerComponent.setVisible(true);
     }
 
 
     private void updateList() {
-        String currentUserId = getCurrentUserId(); // Implement this method to obtain the current user's ID
+        String currentUserId = getCurrentUserId();
         List<Song> songs = songService.findSongsByUserId(currentUserId);
         grid.setItems(songs);
     }
 
     private String getCurrentUserId() {
         return userController.getCurrentUser().getUserId();
+    }
 
+    @Override
+    public void updateContent() {
+        updateList(); // Refresh the list
     }
 }
