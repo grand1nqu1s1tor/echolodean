@@ -1,4 +1,4 @@
-package dev.dipesh.gui.components;
+package dev.dipesh.vaadin.components;
 
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
@@ -22,8 +22,8 @@ public class AudioPlayerComponent extends Div {
         // Set up the initial visibility and styling for the album cover
         albumCover.setVisible(false);
         albumCover.getStyle()
-                .set("maxWidth", "200px")
-                .set("maxHeight", "200px");
+                .set("maxWidth", "250px")
+                .set("maxHeight", "250px");
 
         titleSpan.getStyle().set("font-weight", "bold"); // Styling for title
 

@@ -77,3 +77,20 @@
 .link-container {
     margin-top: 15px;
 }
+
+
+/* Style for all tabs */
+.tab-style {
+    background-color: #f0f0f0; /* Light grey background */
+    color: #333; /* Dark grey text */
+    padding: 10px 20px; /* Top and bottom padding 10px, left and right padding 20px */
+    font-size: 16px; /* Text size */
+    border-radius: 5px; /* Rounded corners */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow */
+}
+
+/* Hover effect */
+.tab-style:hover {
+    background-color: #e8e8e8; /* Slightly darker grey on hover */
+    cursor: pointer;
+}

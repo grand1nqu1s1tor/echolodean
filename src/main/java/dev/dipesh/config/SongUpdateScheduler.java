@@ -15,15 +15,13 @@ import java.util.concurrent.CompletableFuture;
 public class SongUpdateScheduler {
 
     private final SongService songService;
-    private final ExternalAPIService externalAPIService; // Assuming this is the service that interacts with the external API
+    private final ExternalAPIService externalAPIService;
 
-    // Use constructor injection to inject the services
     public SongUpdateScheduler(SongService songService, ExternalAPIService externalAPIService) {
         this.songService = songService;
         this.externalAPIService = externalAPIService;
     }
 
-    // The method will be executed every 10 seconds (10000 milliseconds)
     @Scheduled(fixedDelay = 30000)
     public void updateSongDetails() {
         List<Song> songsToUpdate = songService.findSongsWithMissingMetadata();
@@ -31,14 +29,11 @@ public class SongUpdateScheduler {
 
             CompletableFuture<Boolean> completionFuture = externalAPIService.checkForCompletion(song.getSongId());
 
-            // Chain CompletableFuture to handle it properly
             completionFuture.thenCompose(complete -> {
                 if (complete) {
-                    // Only fetch details if the song is complete
                     return externalAPIService.getSongDetails(song.getSongId())
                             .thenAccept(songDetails -> {
                                 if (songDetails != null && songDetails.getCode() == 0 && songDetails.getData() != null) {
-                                    // Assuming updateSongDetails expects SongData object
                                     songService.updateSongDetails(song.getSongId(), songDetails);
                                 }
                             });

@@ -1,4 +1,4 @@
-package dev.dipesh.DTO;
+package dev.dipesh.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

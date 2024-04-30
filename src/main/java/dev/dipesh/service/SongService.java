@@ -1,6 +1,6 @@
 package dev.dipesh.service;
 
-import dev.dipesh.DTO.SongResponseDTO;
+import dev.dipesh.dto.SongResponseDTO;
 import dev.dipesh.entity.Song;
 import org.springframework.data.domain.Page;
 

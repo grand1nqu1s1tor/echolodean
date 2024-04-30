@@ -1,4 +1,4 @@
-package dev.dipesh.gui;
+package dev.dipesh.vaadin.views;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;

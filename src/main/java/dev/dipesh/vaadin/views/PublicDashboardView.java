@@ -1,4 +1,4 @@
-package dev.dipesh.gui;
+package dev.dipesh.vaadin.views;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -17,13 +17,13 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.spring.annotation.UIScope;
 import dev.dipesh.entity.Song;
-import dev.dipesh.gui.components.SongPromptCard;
+import dev.dipesh.vaadin.components.SongPromptComponent;
 import dev.dipesh.service.SongService;
 import dev.dipesh.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 
-import static dev.dipesh.gui.SecurityUtils.isUserLoggedIn;
+import static dev.dipesh.vaadin.util.SecurityUtils.isUserLoggedIn;
 
 @Route("")
 @UIScope
@@ -34,19 +34,19 @@ public class PublicDashboardView extends VerticalLayout {
     private final SongService songService;
     private final UserService userService;
     private HorizontalLayout linkContainer;
-    private final SongPromptCard songPromptCard;
+    private final SongPromptComponent songPromptComponent;
 
     @Autowired
-    public PublicDashboardView(SongService songService, UserService userService, SongPromptCard songPromptCard) {
+    public PublicDashboardView(SongService songService, UserService userService, SongPromptComponent songPromptComponent) {
         this.songService = songService;
         this.userService = userService;
-        this.songPromptCard = songPromptCard;
+        this.songPromptComponent = songPromptComponent;
         addClassName("dashboard");
 
         // Initialize layout components
         HorizontalLayout header = createHeader();
         VerticalLayout menu = createMenu();
-        FlexLayout mainContent = new FlexLayout(createSongListLayout(), songPromptCard);
+        FlexLayout mainContent = new FlexLayout(createSongListLayout(), songPromptComponent);
         mainContent.setSizeFull();
         mainContent.addClassName("main-content");
         mainContent.setFlexDirection(FlexLayout.FlexDirection.ROW); // Set the flex direction to row

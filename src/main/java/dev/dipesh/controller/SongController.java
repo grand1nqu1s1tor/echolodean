@@ -2,11 +2,12 @@ package dev.dipesh.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.dipesh.DTO.ApiResponseDTO;
-import dev.dipesh.DTO.PromptRequestDTO;
+import dev.dipesh.dto.ApiResponseDTO;
+import dev.dipesh.dto.PromptRequestDTO;
 import dev.dipesh.entity.Song;
 import dev.dipesh.service.ExternalAPIService;
 import dev.dipesh.service.SongService;
+import dev.dipesh.util.ApiUrlConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -18,51 +19,64 @@ import java.util.List;
 @RequestMapping("/songs")
 @RestController
 public class SongController {
+
     @Autowired
     private SongService songService;
+
     @Autowired
     private ExternalAPIService externalAPIService;
+
     @Autowired
     private UserController userController;
 
     @PostMapping("/generate")
-    public ResponseEntity<?> generateSong(@RequestBody PromptRequestDTO promptRequestDTO) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        String requestBody = objectMapper.writeValueAsString(promptRequestDTO);
-        ApiResponseDTO sunoApiResponse = externalAPIService.postGenerateDescription("https://api.sunoaiapi.com/api/v1/gateway/generate/gpt_desc", requestBody);
+    public ResponseEntity<List<Song>> generateSong(@RequestBody PromptRequestDTO promptRequestDTO) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String requestBody = objectMapper.writeValueAsString(promptRequestDTO);
+            ApiResponseDTO apiResponse = externalAPIService.postGenerateDescription(ApiUrlConstants.GENERATE_SONG, requestBody);
+            if (!apiResponse.isSuccessful()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            }
 
-        if (sunoApiResponse.isSuccessful()) {
-            return ResponseEntity.badRequest().body(sunoApiResponse.getErrorMessage());
-        }
+            List<String> songIds = songService.extractSongIds(apiResponse.getBody());
+            if (songIds.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
 
-        List<String> songIds = songService.extractSongIds(sunoApiResponse.getBody());
-        if (songIds.isEmpty()) {
-            return ResponseEntity.ok("No songs were generated.");
+            List<Song> songs = songService.fetchAndSaveSongDetails(songIds);
+            return ResponseEntity.ok(songs);
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        List<Song> songDetails = songService.fetchAndSaveSongDetails(songIds);
-        return ResponseEntity.ok(songDetails);
     }
 
-
     @GetMapping("/suno/{songId}")
-    public Song getSongsByIds(@PathVariable String songId) {
-        return songService.getSongByAPI(songId);
+    public ResponseEntity<Song> getSongById(@PathVariable String songId) {
+        Song song = songService.getSongByAPI(songId);
+        if (song != null) {
+            return ResponseEntity.ok(song);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/user/{userId}")
-    public List<Song> getSongsByUserId(@PathVariable String userId) {
-        return songService.findSongsByUserId(userId);
+    public ResponseEntity<List<Song>> getSongsByUserId(@PathVariable String userId) {
+        List<Song> songs = songService.findSongsByUserId(userId);
+        if (!songs.isEmpty()) {
+            return ResponseEntity.ok(songs);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-
-    //For developer use
     @PostMapping("/fetch-and-save")
     public ResponseEntity<List<Song>> fetchAndSaveSongDetails(@RequestBody List<String> songIds) {
         try {
             List<Song> songs = songService.fetchAndSaveSongDetails(songIds);
             return ResponseEntity.ok(songs);
         } catch (Exception e) {
-            // Log the exception and handle the error response accordingly
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -73,18 +87,13 @@ public class SongController {
         return ResponseEntity.ok(trendingSongs);
     }
 
-    //TODO
     @PostMapping("/like-unlike/{songId}")
-    public ResponseEntity<?> likeOrUnlikeSong(@PathVariable String songId) {
+    public ResponseEntity<String> likeOrUnlikeSong(@PathVariable String songId) {
         String userId = userController.getCurrentUser().getUserId();
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User must be logged in to like a song.");
         }
-        boolean result = songService.likeOrUnlikeSong(songId, userId);
-        if (result) {
-            return ResponseEntity.ok("Song liked successfully.");
-        } else {
-            return ResponseEntity.ok("Song unliked successfully.");
-        }
+        boolean liked = songService.likeOrUnlikeSong(songId, userId);
+        return liked ? ResponseEntity.ok("Song liked successfully.") : ResponseEntity.ok("Song unliked successfully.");
     }
 }

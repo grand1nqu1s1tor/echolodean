@@ -1,8 +1,7 @@
-package dev.dipesh.gui;
+package dev.dipesh.vaadin.views;
 
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
@@ -13,9 +12,9 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 
 @Route("profile")
 @PageTitle("Profile")
-public class ProfileDashboard extends VerticalLayout {
+public class ProfileDashboardView extends VerticalLayout {
 
-    public ProfileDashboard() {
+    public ProfileDashboardView() {
         H2 heading = new H2("User Profile");
 
         // Logout button

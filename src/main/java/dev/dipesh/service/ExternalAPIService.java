@@ -1,7 +1,7 @@
 package dev.dipesh.service;
 
-import dev.dipesh.DTO.ApiResponseDTO;
-import dev.dipesh.DTO.SongResponseDTO;
+import dev.dipesh.dto.ApiResponseDTO;
+import dev.dipesh.dto.SongResponseDTO;
 
 import java.util.concurrent.CompletableFuture;
 

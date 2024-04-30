@@ -1,13 +1,14 @@
-package dev.dipesh.gui;
+package dev.dipesh.vaadin.util;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
 import dev.dipesh.controller.UserController;
 import dev.dipesh.entity.Song;
-import dev.dipesh.gui.components.AudioPlayerComponent;
+import dev.dipesh.vaadin.components.AudioPlayerComponent;
 import dev.dipesh.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 
 @Service
 public class SongUtilityService {
@@ -38,11 +39,10 @@ public class SongUtilityService {
             boolean success = songService.likeOrUnlikeSong(song.getSongId(), userId);
             if (success) {
                 // Assuming the song has been unliked successfully.
-                // You may want to remove the song from the grid immediately or refresh the list.
                 grid.getDataProvider().refreshAll(); // Refreshing the entire list to remove the unliked song
             }
         } else {
-            // If the song was not liked (which shouldn't happen in this view), handle accordingly.
+            // If the song was not liked (which shouldn't happen in this view)
             boolean success = songService.likeOrUnlikeSong(song.getSongId(), userId);
             if (success) {
                 likeButton.setText("Unlike");
@@ -51,8 +51,7 @@ public class SongUtilityService {
         }
     }
 
-    public  String getCurrentUserId() {
-        // Assuming userController.getCurrentUser() returns the currently logged-in user
+    public String getCurrentUserId() {
         return userController.getCurrentUser().getUserId();
     }
 
@@ -60,7 +59,6 @@ public class SongUtilityService {
         String userId = getCurrentUserId();
         boolean success = songService.likeOrUnlikeSong(song.getSongId(), userId);
         if (success) {
-            // Toggle the like status after a successful operation
             boolean newLikeStatus = songService.isLiked(song.getSongId(), userId);
             likeButton.setText(newLikeStatus ? "Unlike" : "Like");
             grid.getDataProvider().refreshItem(song);

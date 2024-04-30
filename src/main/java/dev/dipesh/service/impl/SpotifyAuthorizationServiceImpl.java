@@ -1,4 +1,4 @@
-package dev.dipesh.service;
+package dev.dipesh.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,12 +13,12 @@ import se.michaelthelin.spotify.requests.authorization.authorization_code.Author
 import java.io.IOException;
 
 @Service
-public class SpotifyAuthorizationService {
-    private static final Logger log = LoggerFactory.getLogger(SpotifyAuthorizationService.class);
+public class SpotifyAuthorizationServiceImpl {
+    private static final Logger log = LoggerFactory.getLogger(SpotifyAuthorizationServiceImpl.class);
     private final SpotifyApi spotifyApi;
 
     @Autowired
-    public SpotifyAuthorizationService(SpotifyApi spotifyApi) {
+    public SpotifyAuthorizationServiceImpl(SpotifyApi spotifyApi) {
         this.spotifyApi = spotifyApi;
     }
 

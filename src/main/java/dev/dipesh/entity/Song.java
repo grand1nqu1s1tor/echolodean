@@ -15,13 +15,13 @@ import java.util.Date;
 @Table(name = "songs_metadata")
 @Getter
 @Setter
-@JsonIgnoreProperties(ignoreUnknown = true) // This tells Jackson to ignore fields not listed here
+@JsonIgnoreProperties(ignoreUnknown = true)
 @ToString
 public class Song {
 
     @Id
     @Column(name = "song_id")
-    @JsonProperty("song_id") // Match JSON property to the Java field
+    @JsonProperty("song_id")
     private String songId;
 
     @Column(nullable = false)
@@ -33,19 +33,19 @@ public class Song {
 
     private String description;
 
-    @JsonProperty("duration") // Duration in JSON might be in different units, ensure proper conversion if needed
+    @JsonProperty("duration") // Duration in JSON might be in different units
     private double duration;
 
     @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "UTC")
-    @JsonProperty("create_time") // Match JSON property to the Java field
+    @JsonProperty("create_time")
     private Date createdAt;
 
-    @JsonProperty("audio_url") // Match JSON property to the Java field
+    @JsonProperty("audio_url")
     private String audioUrl;
 
-    @JsonProperty("image_url") // Match JSON property to the Java field
+    @JsonProperty("image_url")
     private String imageUrl;
 
     @Lob

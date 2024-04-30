@@ -1,32 +1,33 @@
 package dev.dipesh.config;
 
-import java.net.URI;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.SpotifyHttpManager;
+
+import java.net.URI;
+
 @Configuration
 public class SpotifyConfiguration {
 
-	@Value("${spotify.client-id}")
-	private String clientId;
+    @Value("${spotify.client-id}")
+    private String clientId;
 
-	@Value("${spotify.client-secret}")
-	private String clientSecret;
+    @Value("${spotify.client-secret}")
+    private String clientSecret;
 
-	@Value("${redirect.server.ip}")
-	private String redirectServerIp;
+    @Value("${custom.server.ip}")
+    private String customServerIp;
 
-	@Bean
-	public SpotifyApi getSpotifyObject() {
-		URI redirectUri = SpotifyHttpManager.makeUri(redirectServerIp + "/api/get-user-code");
+    @Bean
+    public SpotifyApi getSpotifyObject() {
+        URI redirectUri = SpotifyHttpManager.makeUri(customServerIp + "/api/get-user-code");
 
-		return new SpotifyApi.Builder()
-				.setClientId(clientId)
-				.setClientSecret(clientSecret)
-				.setRedirectUri(redirectUri)
-				.build();
-	}
+        return new SpotifyApi.Builder()
+                .setClientId(clientId)
+                .setClientSecret(clientSecret)
+                .setRedirectUri(redirectUri)
+                .build();
+    }
 }

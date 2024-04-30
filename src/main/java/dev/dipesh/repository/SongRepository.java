@@ -23,7 +23,6 @@ public interface SongRepository extends JpaRepository<Song, String> {
     @Query(value = "SELECT s.* FROM songs_metadata s JOIN song_likes ul ON s.song_id = ul.song_id WHERE ul.user_id = :userId", nativeQuery = true)
     List<Song> findLikedSongsByUserId(@Param("userId") String userId);
 
-    //    @Query("SELECT s FROM Song s WHERE s.audioUrl IS NULL OR s.imageUrl IS NULL OR s.title IS NULL OR s.lyrics IS NULL")
     @Query("SELECT s FROM Song s WHERE TRIM(CONCAT(s.audioUrl, '')) = '' OR TRIM(CONCAT(s.imageUrl, '')) = '' OR TRIM(CONCAT(s.title, '')) = '' OR TRIM(CONCAT(s.lyrics, '')) = ''")
     List<Song> findSongsWithMissingMetadata();
 }

@@ -1,11 +1,10 @@
 package dev.dipesh.controller;
 
 import dev.dipesh.config.SpotifyConfiguration;
-import dev.dipesh.service.SpotifyAuthorizationService;
+import dev.dipesh.service.impl.SpotifyAuthorizationServiceImpl;
 import dev.dipesh.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import se.michaelthelin.spotify.SpotifyApi;
-import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.AuthorizationCodeCredentials;
 import se.michaelthelin.spotify.model_objects.specification.User;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeRequest;
@@ -37,7 +35,7 @@ public class SpotifyController {
 
 
     @Autowired
-    SpotifyAuthorizationService spotifyAuthorizationService;
+    SpotifyAuthorizationServiceImpl spotifyAuthorizationServiceImpl;
 
     @Autowired
     private SpotifyConfiguration spotifyConfiguration;

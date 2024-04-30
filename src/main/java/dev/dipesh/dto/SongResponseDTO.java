@@ -1,4 +1,4 @@
-package dev.dipesh.DTO;
+package dev.dipesh.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -9,7 +9,7 @@ import lombok.Data;
 public class SongResponseDTO {
     private int code;
     private String msg;
-    private SongData data;  // Changed the type to SongData
+    private SongData data;
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)

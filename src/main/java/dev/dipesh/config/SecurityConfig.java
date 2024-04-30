@@ -1,5 +1,6 @@
 package dev.dipesh.config;
 
+import dev.dipesh.util.ApiUrlConstants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +26,8 @@ public class SecurityConfig {
     @Value("${redirect.server.ip}")
     private String redirectServerIp;
 
-//It was a pain in my ass to resolve the security config since the /home endpoint was protected and it kept redirecting to Spotify for the OAuth flow to complete and was looping.
+
+    //TODO
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
@@ -53,7 +55,7 @@ public class SecurityConfig {
                 .clientId(clientId)
                 .clientSecret(clientSecret)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("http://localhost:8080/api/get-user-code") // Ensure this matches the redirect URI used in SpotifyConfiguration
+                .redirectUri(ApiUrlConstants.REDIRECT_URI) // Ensure this matches the redirect URI used in SpotifyConfiguration
                 .scope("user-read-email", "user-read-private"/*, "user-read-birthdate", "user-read-playback-state", "user-read-recently-played", "user-library-read", "playlist-read-private", "playlist-read-collaborative", "user-top-read", "user-follow-read"*/)
                 .authorizationUri("https://accounts.spotify.com/authorize")
                 .tokenUri("https://accounts.spotify.com/api/token")

@@ -1,0 +1,35 @@
+# Server Configuration
+server.port=8080
+custom.server.ip=http://localhost:8080
+
+# Spotify API Configuration
+spotify.client-id=INSERT_SPOTIFY_CLIENT_ID_HERE
+spotify.client-secret=INSERT_SPOTIFY_CLIENT_SECRET_HERE
+
+# Database Configuration
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/echolodean_db
+spring.datasource.username=INSERT_DB_USERNAME_HERE
+spring.datasource.password=INSERT_DB_PASSWORD_HERE
+spring.datasource.type=com.zaxxer.hikari.HikariDataSource
+
+# JPA and Hibernate Configuration
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+
+# Logging Configuration
+logging.level.root=DEBUG
+logging.level.org.springframework.web=DEBUG
+logging.level.org.hibernate=ERROR
+logging.level.org.springframework.security=DEBUG
+
+# Vaadin Configuration
+vaadin.frontend.frontend.folder=src/main/frontend
+vaadin.excludeUrls=/swagger-ui/**
+
+# Active Profiles
+spring.profiles.active=scheduling-enabled
+
+# API Key
+api.key=INSERT_API_KEY_HERE

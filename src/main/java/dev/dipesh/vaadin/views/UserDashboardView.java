@@ -1,6 +1,7 @@
-package dev.dipesh.gui;
+package dev.dipesh.vaadin.views;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
@@ -8,17 +9,17 @@ import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import dev.dipesh.controller.UserController;
-import dev.dipesh.gui.components.SongPromptCard;
+import dev.dipesh.vaadin.components.SongPromptComponent;
+import dev.dipesh.vaadin.util.SongUtilityService;
 import dev.dipesh.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Route("home")
 @PageTitle("Home")
+@CssImport("./styles/default-dashboard-styles.css")
 public class UserDashboardView extends VerticalLayout {
 
     private Tabs tabs = new Tabs();
@@ -29,16 +30,13 @@ public class UserDashboardView extends VerticalLayout {
 
 
     @Autowired
-    public UserDashboardView(SongPromptCard songPromptCard, SongService songService, UserController userController, SongUtilityService songUtilityService) {
+    public UserDashboardView(SongPromptComponent songPromptComponent, SongService songService, UserController userController, SongUtilityService songUtilityService) {
         this.userController = userController;
         this.songService = songService;
         this.songUtilityService = songUtilityService;
 
-        // User greeting
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userName = authentication.getName();
-        H1 greeting = new H1("Hello, " + userName + "!");
-        add(greeting); // Add the greeting to the layout
+        H1 greeting = new H1("Hello, " + userController.getCurrentUser().getUsername() + "!");
+        add(greeting);
 
         setSizeFull();
 
@@ -48,11 +46,18 @@ public class UserDashboardView extends VerticalLayout {
         Tab likedSongsTab = new Tab("All you like");
         Tab profileTab = new Tab("Profile");
 
-        Component createSongDashBoard = songPromptCard;
-        Component trendingMusicDashboard = new TrendingMusicDashboard(songService, this.songUtilityService);
+        //Apply Styling
+        createSongTab.addClassName("tab-style");
+        trendingMusicTab.addClassName("tab-style");
+        mySongsTab.addClassName("tab-style");
+        likedSongsTab.addClassName("tab-style");
+        profileTab.addClassName("tab-style");
+
+        Component createSongDashBoard = songPromptComponent;
+        Component trendingMusicDashboard = new TrendingDashboardView(songService, this.songUtilityService);
         Component mySongsDashBoard = new MySongsView(songService, userController);
-        Component likedSongsDashBoard = new LikedSongsDashboard(songService, userController, songUtilityService);
-        Component profileDashBoard = new ProfileDashboard();
+        Component likedSongsDashBoard = new LikedSongsDashboardView(songService, userController, songUtilityService);
+        Component profileDashBoard = new ProfileDashboardView();
 
         tabsToPages.put(createSongTab, createSongDashBoard);
         tabsToPages.put(trendingMusicTab, trendingMusicDashboard);
@@ -70,12 +75,12 @@ public class UserDashboardView extends VerticalLayout {
             if (selectedContent instanceof UpdatableTabContent) {
                 ((UpdatableTabContent) selectedContent).updateContent();
             }
-            removeAll(); // Clear existing components
-            add(greeting, tabs, selectedContent); // Add tabs and the selected component
+            removeAll();
+            add(greeting, tabs, selectedContent);
         });
 
-        add(greeting, tabs); // Initially add greeting and tabs without content
-        setSelectedTab(createSongTab); // Optionally set an initial tab
+        add(greeting, tabs);
+        setSelectedTab(createSongTab);
     }
 
     public interface UpdatableTabContent {
@@ -84,6 +89,6 @@ public class UserDashboardView extends VerticalLayout {
 
     private void setSelectedTab(Tab tab) {
         Component content = tabsToPages.get(tab);
-        add(content); // Add initial content below the tabs
+        add(content);
     }
 }

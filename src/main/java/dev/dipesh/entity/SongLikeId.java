@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 @Embeddable
 @Setter
@@ -14,10 +13,10 @@ import java.util.Objects;
 @EqualsAndHashCode
 public class SongLikeId implements Serializable {
     private String user;
-    private String song; //
+    private String song;
 
-    // Constructors
-    public SongLikeId() {}
+    public SongLikeId() {
+    }
 
     public SongLikeId(String userId, String songId) {
         this.user = user;

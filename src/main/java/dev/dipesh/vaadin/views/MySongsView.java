@@ -1,17 +1,18 @@
-package dev.dipesh.gui;
+package dev.dipesh.vaadin.views;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import dev.dipesh.controller.UserController;
 import dev.dipesh.entity.Song;
-import dev.dipesh.gui.components.AudioPlayerComponent;
+import dev.dipesh.vaadin.components.AudioPlayerComponent;
 import dev.dipesh.service.SongService;
 
 import java.util.List;
@@ -35,10 +36,25 @@ public class MySongsView extends VerticalLayout implements UserDashboardView.Upd
         this.userController = userController;
         setSizeFull();
         configureGrid();
-        add(grid);
+
+        // Create a new HorizontalLayout to position the grid and audio player side-by-side
+        HorizontalLayout mainLayout = new HorizontalLayout();
+        mainLayout.setSizeFull(); // Ensure the layout occupies the full available space
+
+        // Add the grid to the left side of the layout
+        mainLayout.add(grid);
+        mainLayout.setFlexGrow(1, grid); // Allow grid to expand and fill remaining space horizontally
+
+        // Adjust the audio player component width
+        audioPlayerComponent.setWidth("100%"); // Set audio player component width to 100% to fill the remaining space
+
+        // Add the audio player component to the right side of the layout
+        mainLayout.add(audioPlayerComponent);
+
+        add(mainLayout); // Add the main layout containing both grid and player
         updateList();
-        audioPlayerComponent.setVisible(false); //
-        add(audioPlayerComponent);
+
+        audioPlayerComponent.setVisible(false); // Hide audio player component by default
     }
 
     private void configureGrid() {
@@ -62,7 +78,7 @@ public class MySongsView extends VerticalLayout implements UserDashboardView.Upd
         // Title column
         grid.addColumn(Song::getTitle).setHeader("Title")
                 .setAutoWidth(true)
-                .setFlexGrow(0); // Prevent the column from stretching
+                .setFlexGrow(0);
 
         // Inside the configureGrid method after setting up the play button
         grid.addColumn(new ComponentRenderer<>(song -> {
