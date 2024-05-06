@@ -124,7 +124,7 @@ public class SongServiceImpl implements SongService {
 
 
     public Song getSongByAPI(String songId) {
-        String url = ApiUrlConstants.GATEWAY_FEED + songId;
+        String url = ApiUrlConstants.GET_SONG + songId;
         HttpRequest request = buildHttpRequest(url);
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
