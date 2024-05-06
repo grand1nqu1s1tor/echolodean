@@ -3,6 +3,7 @@ package dev.dipesh.vaadin.views;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -17,6 +18,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.spring.annotation.UIScope;
 import dev.dipesh.entity.Song;
+import dev.dipesh.vaadin.components.AudioPlayerComponent;
 import dev.dipesh.vaadin.components.SongPromptComponent;
 import dev.dipesh.service.SongService;
 import dev.dipesh.service.UserService;
@@ -35,22 +37,26 @@ public class PublicDashboardView extends VerticalLayout {
     private final UserService userService;
     private HorizontalLayout linkContainer;
     private final SongPromptComponent songPromptComponent;
+    private AudioPlayerComponent audioPlayerComponent;
 
     @Autowired
     public PublicDashboardView(SongService songService, UserService userService, SongPromptComponent songPromptComponent) {
         this.songService = songService;
         this.userService = userService;
         this.songPromptComponent = songPromptComponent;
+        this.audioPlayerComponent = new AudioPlayerComponent();
         addClassName("dashboard");
 
         // Initialize layout components
         HorizontalLayout header = createHeader();
         VerticalLayout menu = createMenu();
-        FlexLayout mainContent = new FlexLayout(createSongListLayout(), songPromptComponent);
+        FlexLayout mainContent = new FlexLayout(createSongListLayout(), songPromptComponent, audioPlayerComponent);
         mainContent.setSizeFull();
         mainContent.addClassName("main-content");
-        mainContent.setFlexDirection(FlexLayout.FlexDirection.ROW); // Set the flex direction to row
+        mainContent.setFlexDirection(FlexLayout.FlexDirection.ROW);
 
+        // Add the audio player component
+        mainContent.add(audioPlayerComponent);
 
         HorizontalLayout footer = createFooter();
         initLinkContainer();
@@ -64,15 +70,27 @@ public class PublicDashboardView extends VerticalLayout {
     }
 
 
+
     private VerticalLayout createSongListLayout() {
-        // This method will just create the layout for the song list
         VerticalLayout songListLayout = new VerticalLayout();
         songListLayout.addClassName("song-list");
         songListLayout.setSizeFull();
-
-        // Add the scrolling song cards to this layout
-        // You might need to set a max height and set overflow-y to auto for scrolling
         songListLayout.getStyle().set("max-height", "100%").set("overflow-y", "auto");
+
+        // Add a heading
+        H2 songListHeading = new H2("Trending Songs");
+        songListHeading.addClassName("section-heading");
+
+        Image trendingImage = new Image("images/Trending.jpg", "Trending");
+        trendingImage.setHeight("40px");
+
+// Create a HorizontalLayout to keep the heading and image in one line
+        HorizontalLayout headerLayout = new HorizontalLayout(songListHeading, trendingImage);
+        headerLayout.setDefaultVerticalComponentAlignment(Alignment.CENTER); // Aligns children vertically in the center
+        headerLayout.setAlignItems(Alignment.CENTER); // Centers items along the cross axis
+
+// Add the header layout to the song list layout or another parent layout
+        songListLayout.add(headerLayout);
 
         Page<Song> trendingSongs = songService.getTrendingSongs(10);
         for (Song song : trendingSongs) {
@@ -82,6 +100,7 @@ public class PublicDashboardView extends VerticalLayout {
 
         return songListLayout;
     }
+
 
     private HorizontalLayout createHeader() {
         HorizontalLayout header = new HorizontalLayout();
@@ -170,16 +189,10 @@ public class PublicDashboardView extends VerticalLayout {
         cardLayout.setWidthFull();
         cardLayout.setAlignItems(Alignment.CENTER);
         cardLayout.setJustifyContentMode(JustifyContentMode.START);
-        cardLayout.getStyle().set("border", "1px solid var(--lumo-contrast-10pct)");
-        cardLayout.getStyle().set("border-radius", "var(--lumo-border-radius)");
-        cardLayout.getStyle().set("padding", "var(--lumo-space-m)");
-        cardLayout.getStyle().set("margin", "var(--lumo-space-m)");
-        cardLayout.getStyle().set("box-shadow", "var(--lumo-box-shadow-xs)");
+        cardLayout.getStyle().set("cursor", "pointer"); // Make it clear that the card is clickable
 
-
-        Image albumCover = song.getImageUrl() != null && !song.getImageUrl().isEmpty()
-                ? new Image(song.getImageUrl(), "Album cover")
-                : new Image("images/default_cover.png", "Default album cover");
+        Image albumCover = new Image(song.getImageUrl() != null && !song.getImageUrl().isEmpty()
+                ? song.getImageUrl() : "images/default_cover.png", "Album cover");
         albumCover.setWidth("100px");
         albumCover.setHeight("100px");
 
@@ -190,23 +203,19 @@ public class PublicDashboardView extends VerticalLayout {
 
         Span title = new Span(song.getTitle());
         title.addClassName("song-title");
-        title.getStyle().set("font-weight", "bold");
-        title.getStyle().set("font-size", "var(--lumo-font-size-l)");
 
-        Span artist = new Span("Artist Name: " + userService.getUserById(song.getUserId()).getUsername()); // Replace with the actual artist name if available
-        artist.addClassName("song-artist");
+        Span artist = new Span("Artist Name: " + userService.getUserById(song.getUserId()).getUsername());
 
-        Button playButton = new Button(new Icon(VaadinIcon.PLAY));
-        playButton.addClassName("play-button");
-        // Add click listener for playButton if needed
-
-        infoLayout.add(title, artist, playButton);
+        infoLayout.add(title, artist);
 
         cardLayout.add(albumCover, infoLayout);
-
         cardLayout.addClickListener(event -> {
-            UI.getCurrent().navigate(LoginView.class);
+            audioPlayerComponent.setTitle(song.getTitle());
+            audioPlayerComponent.setAlbumCover(song.getImageUrl());
+            audioPlayerComponent.setSource(song.getAudioUrl());  // Ensure your Song entity has a getAudioUrl method
+            audioPlayerComponent.setLyrics(song.getLyrics());
         });
+
         return cardLayout;
     }
 
@@ -229,7 +238,7 @@ public class PublicDashboardView extends VerticalLayout {
 
     public void updateVisibilityBasedOnAuthentication() {
         boolean loggedIn = isUserLoggedIn();
-        linkContainer.setVisible(loggedIn); // Show or hide the container based on login status
+        linkContainer.setVisible(loggedIn);
     }
 
 }

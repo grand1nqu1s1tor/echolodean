@@ -1,7 +1,9 @@
 package dev.dipesh.vaadin.views;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Page;
 
 @Route("trending")
 @UIScope
+@CssImport("./styles/default-dashboard-styles.css")
 public class TrendingDashboardView extends VerticalLayout implements UserDashboardView.UpdatableTabContent {
 
     private Grid<Song> grid = new Grid<>(Song.class);
@@ -26,15 +29,19 @@ public class TrendingDashboardView extends VerticalLayout implements UserDashboa
     public TrendingDashboardView(SongService songService, SongUtilityService songUtilityService) {
         this.songService = songService;
         this.songUtilityService = songUtilityService;
+        addClassName("user-dashboard");
         setupGrid();
+
         HorizontalLayout mainLayout = new HorizontalLayout();
         mainLayout.setSizeFull();
         mainLayout.add(grid);
         mainLayout.setFlexGrow(1, grid);
 
         audioPlayerComponent.setWidth("100%");
-        mainLayout.add(audioPlayerComponent);
+        audioPlayerComponent.setVisible(false);
 
+        mainLayout.add(audioPlayerComponent);
+        mainLayout.addClassName("grid-container");
         add(mainLayout);
         updateList();
     }
@@ -65,6 +72,7 @@ public class TrendingDashboardView extends VerticalLayout implements UserDashboa
             audioPlayerComponent.setVisible(false);
             return audioPlayerComponent;
         }).setSortable(false).setFlexGrow(0);
+        grid.getElement().getStyle().set("background-color", "transparent");
     }
 
     private void updateList() {

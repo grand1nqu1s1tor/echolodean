@@ -1,8 +1,8 @@
 package dev.dipesh.controller;
 
 import dev.dipesh.config.SpotifyConfiguration;
-import dev.dipesh.service.impl.SpotifyAuthorizationServiceImpl;
 import dev.dipesh.service.UserService;
+import dev.dipesh.service.impl.SpotifyAuthorizationServiceImpl;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.model_objects.credentials.AuthorizationCodeCredentials;
+import se.michaelthelin.spotify.model_objects.specification.Artist;
+import se.michaelthelin.spotify.model_objects.specification.Paging;
 import se.michaelthelin.spotify.model_objects.specification.User;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeRequest;
 import se.michaelthelin.spotify.requests.authorization.authorization_code.AuthorizationCodeUriRequest;
+import se.michaelthelin.spotify.requests.data.personalization.simplified.GetUsersTopArtistsRequest;
 import se.michaelthelin.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest;
 
 import java.io.IOException;
@@ -33,7 +36,6 @@ public class SpotifyController {
     @Value("${custom.server.ip}")
     private String customIp;
 
-
     @Autowired
     SpotifyAuthorizationServiceImpl spotifyAuthorizationServiceImpl;
 
@@ -42,6 +44,10 @@ public class SpotifyController {
 
     @Autowired
     private UserService userService;
+
+    //TODO remove after testing
+    @Autowired
+    private HttpSession session;
 
 
     @Autowired
@@ -55,8 +61,7 @@ public class SpotifyController {
         SpotifyApi spotifyApi = spotifyConfiguration.getSpotifyObject();
 
         AuthorizationCodeUriRequest authorizationCodeUriRequest = spotifyApi.authorizationCodeUri()
-                .scope("user-library-read")
-                .show_dialog(true)
+                .scope("user-read-email user-read-private user-read-playback-state user-top-read user-library-read playlist-read-private playlist-read-collaborative user-follow-read").show_dialog(true)
                 .build();
 
         final URI uri = authorizationCodeUriRequest.execute();
@@ -77,25 +82,24 @@ public class SpotifyController {
 
             GetCurrentUsersProfileRequest profileRequest = spotifyApi.getCurrentUsersProfile().build();
             User user = profileRequest.execute();
-
-            // Process user details and implement user-specific logic if necessary
             dev.dipesh.entity.User localUser = processUserDetails(user);
+
+            final GetUsersTopArtistsRequest getUsersTopArtistsRequest = spotifyApi.getUsersTopArtists()
+                    .build();
+
+            final Paging<Artist> artistPaging = getUsersTopArtistsRequest.execute();
+            System.out.println("U" + artistPaging.toString());
 
             // Store user details in session
             session.setAttribute("user", localUser); // You may want to store a custom user object instead
             session.setAttribute("accessToken", authorizationCodeCredentials.getAccessToken());
             session.setAttribute("refreshToken", authorizationCodeCredentials.getRefreshToken());
 
-            //Debug
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            System.out.println(authentication.getAuthorities());
-
             // Perform redirect
             response.sendRedirect(customIp + "/home");
-        } catch (Exception e) { // Catch more general Exception to cover all bases
+        } catch (Exception e) {
             System.out.println("Exception occurred while getting user code: " + e.getMessage());
             try {
-                // Redirect to an error page or handle differently if needed
                 response.sendRedirect("/error");
             } catch (IOException ioException) {
                 ioException.printStackTrace();
@@ -114,4 +118,32 @@ public class SpotifyController {
         userService.saveUser(localUser);
         return localUser;
     }
+
+
+    void testMethod() {
+        try {
+            // Retrieve the access token from the session
+            String accessToken = (String) session.getAttribute("accessToken");
+
+            // Construct a SpotifyApi object using the access token
+            SpotifyApi spotifyApi = new SpotifyApi.Builder()
+                    .setAccessToken(accessToken)
+                    .build();
+
+            // Make the desired API call using the SpotifyApi object
+            final GetUsersTopArtistsRequest getUsersTopArtistsRequest = spotifyApi.getUsersTopArtists()
+//          .limit(10)
+//          .offset(0)
+//          .time_range("medium_term")
+                    .build();
+
+            final Paging<Artist> artistPaging = getUsersTopArtistsRequest.execute();
+            System.out.println("U" + artistPaging.toString());
+        } catch (Exception e) {
+            // Handle exceptions appropriately
+            e.printStackTrace();
+        }
+    }
+
+
 }

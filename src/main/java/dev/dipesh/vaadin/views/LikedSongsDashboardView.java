@@ -11,9 +11,9 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.spring.annotation.UIScope;
 import dev.dipesh.controller.UserController;
 import dev.dipesh.entity.Song;
+import dev.dipesh.service.SongService;
 import dev.dipesh.vaadin.components.AudioPlayerComponent;
 import dev.dipesh.vaadin.util.SongUtilityService;
-import dev.dipesh.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -37,26 +37,23 @@ public class LikedSongsDashboardView extends VerticalLayout implements UserDashb
 
         // Create a new HorizontalLayout to position elements side-by-side
         HorizontalLayout mainLayout = new HorizontalLayout();
-        mainLayout.setSizeFull(); // Ensure the layout occupies the full available space
+        mainLayout.setSizeFull();
 
-        // Add the grid to the left side of the layout
         mainLayout.add(grid);
-        mainLayout.setFlexGrow(1, grid); // Allow grid to expand and fill remaining space horizontally
+        mainLayout.setFlexGrow(1, grid);
 
-        // Adjust the audio player component width
-        audioPlayerComponent.setWidth("100%"); // Set audio player component width to 100% to fill the remaining space
+        audioPlayerComponent.setWidth("100%");
 
-        // Add the audio player component to the right side of the layout
         mainLayout.add(audioPlayerComponent);
 
-        add(mainLayout); // Add the main layout containing both grid and player
+        add(mainLayout);
         updateList();
 
         grid.addColumn(new ComponentRenderer<>(song -> {
             Button likeButton = new Button("Unlike");
             likeButton.addClickListener(click -> {
                 songUtilityService.handleLikeClick(song, likeButton, grid);
-                likeButton.setText("Like"); // Change the text to "Like" since the user has unliked the song
+                likeButton.setText("Like");
                 updateList();
             });
             likeButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
@@ -69,11 +66,12 @@ public class LikedSongsDashboardView extends VerticalLayout implements UserDashb
             return playButton;
         })).setHeader("Audio");
 
-        audioPlayerComponent.setVisible(false); //
+        audioPlayerComponent.setVisible(false);
         add(audioPlayerComponent);
+        grid.getElement().getStyle().set("background-color", "transparent");
+
         updateList();
     }
-
 
 
     private void playSong(Song song) {

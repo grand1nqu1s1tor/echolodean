@@ -37,73 +37,61 @@ public class MySongsView extends VerticalLayout implements UserDashboardView.Upd
         setSizeFull();
         configureGrid();
 
-        // Create a new HorizontalLayout to position the grid and audio player side-by-side
         HorizontalLayout mainLayout = new HorizontalLayout();
-        mainLayout.setSizeFull(); // Ensure the layout occupies the full available space
+        mainLayout.setSizeFull();
 
-        // Add the grid to the left side of the layout
         mainLayout.add(grid);
-        mainLayout.setFlexGrow(1, grid); // Allow grid to expand and fill remaining space horizontally
+        mainLayout.setFlexGrow(1, grid);
 
-        // Adjust the audio player component width
-        audioPlayerComponent.setWidth("100%"); // Set audio player component width to 100% to fill the remaining space
+        audioPlayerComponent.setWidth("100%");
 
-        // Add the audio player component to the right side of the layout
         mainLayout.add(audioPlayerComponent);
 
-        add(mainLayout); // Add the main layout containing both grid and player
+        add(mainLayout);
         updateList();
 
-        audioPlayerComponent.setVisible(false); // Hide audio player component by default
+        audioPlayerComponent.setVisible(false);
     }
 
     private void configureGrid() {
         grid.addClassName("song-grid");
         grid.setSizeFull();
-        grid.removeAllColumns(); // Clear any existing columns
-
-        // Image column
+        grid.removeAllColumns();
         grid.addColumn(new ComponentRenderer<>(song -> {
             if (song.getImageUrl() != null) {
-
                 Image image = new Image(song.getImageUrl(), "Album cover");
-                image.setWidth("100px"); // Set width to make images consistent
+                image.setWidth("100px");
                 image.setHeight("100px");
                 return image;
             }
-
             return null;
         })).setHeader("Cover").setAutoWidth(true);
 
-        // Title column
         grid.addColumn(Song::getTitle).setHeader("Title")
                 .setAutoWidth(true)
                 .setFlexGrow(0);
 
-        // Inside the configureGrid method after setting up the play button
         grid.addColumn(new ComponentRenderer<>(song -> {
             Button playButton = new Button("Play", click -> {
                 audioPlayerComponent.setSource(song.getAudioUrl());
                 audioPlayerComponent.setAlbumCover(song.getImageUrl());
                 audioPlayerComponent.setTitle(song.getTitle());
                 audioPlayerComponent.setLyrics(song.getLyrics());
-                audioPlayerComponent.setVisible(true); // Show the audio player
+                audioPlayerComponent.setVisible(true);
             });
             playButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
             return playButton;
         })).setHeader("Audio");
 
-        //Like Column
         grid.addColumn(new ComponentRenderer<>(song -> {
-            String userId = getCurrentUserId(); // Retrieve the logged-in user's ID
+            String userId = getCurrentUserId();
             Button likeButton = new Button(songService.isLiked(song.getSongId(), userId) ? "Unlike" : "Like");
 
             likeButton.addClickListener(click -> {
                 boolean success = songService.likeOrUnlikeSong(song.getSongId(), userId);
                 if (success) {
-                    // Re-check the like state after the operation
                     boolean newLikeStatus = songService.isLiked(song.getSongId(), userId);
-                    likeButton.setText(newLikeStatus ? "Unlike" : "Like"); // Update the text to the new state
+                    likeButton.setText(newLikeStatus ? "Unlike" : "Like");
                     grid.getDataProvider().refreshItem(song);
                 }
             });
@@ -116,6 +104,8 @@ public class MySongsView extends VerticalLayout implements UserDashboardView.Upd
             col.setResizable(true);
             col.getElement().getStyle().set("text-align", "center");
         });
+
+        grid.getElement().getStyle().set("background-color", "transparent");
 
         grid.setAllRowsVisible(true);
     }

@@ -2,18 +2,27 @@ package dev.dipesh.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.dipesh.config.SpotifyConfiguration;
 import dev.dipesh.dto.ApiResponseDTO;
 import dev.dipesh.dto.PromptRequestDTO;
 import dev.dipesh.entity.Song;
 import dev.dipesh.service.ExternalAPIService;
 import dev.dipesh.service.SongService;
-import dev.dipesh.util.ApiUrlConstants;
+import dev.dipesh.util.SpotifyGenreUtils;
+import jakarta.servlet.http.HttpSession;
+import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.model_objects.specification.Artist;
+import se.michaelthelin.spotify.model_objects.specification.Paging;
+import se.michaelthelin.spotify.requests.data.personalization.simplified.GetUsersTopArtistsRequest;
 
+import java.io.IOException;
 import java.util.List;
 
 @RequestMapping("/songs")
@@ -29,12 +38,27 @@ public class SongController {
     @Autowired
     private UserController userController;
 
+    @Autowired
+    private SpotifyController spotifyController;
+
+    @Autowired
+    private SpotifyConfiguration spotifyConfiguration;
+
+    //TODO remove after testing
+    @Autowired
+    private HttpSession session;
+
+
     @PostMapping("/generate")
     public ResponseEntity<List<Song>> generateSong(@RequestBody PromptRequestDTO promptRequestDTO) {
         try {
+            //TODO ADD customized prompt
+            String customPrompt = addUserContext(promptRequestDTO.getGpt_description_prompt());
+            promptRequestDTO.setGpt_description_prompt(customPrompt);
             ObjectMapper objectMapper = new ObjectMapper();
             String requestBody = objectMapper.writeValueAsString(promptRequestDTO);
-            ApiResponseDTO apiResponse = externalAPIService.postGenerateDescription(ApiUrlConstants.GENERATE_SONG, requestBody);
+            ApiResponseDTO apiResponse = ApiResponseDTO.parseResponse("{\n" + " \"code\": 0,\n" + " \"msg\": \"success\",\n" + " \"data\": [{\n" + "  \"user_id\": \"xxx\",\n" + "  \"song_id\": \"71540f19-d335-4938-95e7-52b3d524d17c\",\n" + "  \"status\": \"submitted\",\n" + "  \"title\": \"Happy dog Song\",\n" + "  \"image_large_url\": null,\n" + "  \"image_url\": null,\n" + "  \"model_name\": \"chirp-v3\",\n" + "  \"video_url\": \"\",\n" + "  \"audio_url\": \"\",\n" + "  \"meta_tags\": \"happy, rock\",\n" + "  \"meta_prompt\": \"A happy song about dogs\",\n" + "  \"meta_duration\": null,\n" + "  \"meta_error_msg\": null,\n" + "  \"meta_error_type\": null\n" + " }, {\n" + "  \"user_id\": \"xxx\",\n" + "  \"song_id\": \"afdcb554-249d-4d67-90e3-917f7b4f8bfe\",\n" + "  \"status\": \"submitted\",\n" + "  \"title\": \"Happy dog Song\",\n" + "  \"image_large_url\": null,\n" + "  \"image_url\": null,\n" + "  \"model_name\": \"chirp-v3\",\n" + "  \"video_url\": \"\",\n" + "  \"audio_url\": \"\",\n" + "  \"meta_tags\": \"happy, rock\",\n" + "  \"meta_prompt\": \"A happy song about dogs\",\n" + "  \"meta_duration\": null,\n" + "  \"meta_error_msg\": null,\n" + "  \"meta_error_type\": null\n" + " }]\n" + "}");
+            //ApiResponseDTO apiResponse = externalAPIService.postGenerateDescription(ApiUrlConstants.GENERATE_SONG, requestBody);
             if (!apiResponse.isSuccessful()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
             }
@@ -50,6 +74,22 @@ public class SongController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    private String addUserContext(String gptDescriptionPrompt) {
+        try {
+            SpotifyApi spotifyApi = spotifyConfiguration.getSpotifyObjectFromSession(session);
+            GetUsersTopArtistsRequest getUsersTopArtistsRequest = spotifyApi.getUsersTopArtists().build();
+            Paging<Artist> topArtists = getUsersTopArtistsRequest.execute();
+            SpotifyGenreUtils spotifyGenreUtils = new SpotifyGenreUtils();
+            List<String> userFavoriteGenres = spotifyGenreUtils.extractGenres(topArtists);
+            System.out.println("Extracted Genres: " + userFavoriteGenres);
+            return String.format(gptDescriptionPrompt + ". Genre: ", userFavoriteGenres.getFirst() + "\t" + userFavoriteGenres.getLast());
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        return "";
+    }
+
 
     @GetMapping("/suno/{songId}")
     public ResponseEntity<Song> getSongById(@PathVariable String songId) {

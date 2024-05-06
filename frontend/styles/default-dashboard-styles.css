@@ -1,31 +1,37 @@
-/* Additional styles for the new components */
-
-
-.song-card {
-    min-height: 150px; /* or any other appropriate value */
-}
-
-.song-title {
-    font-weight: bold;
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;  /* Prevents scroll bars on the root elements */
 }
 
 .dashboard {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+    background-image: url('../images/background.jpg'); /* Ensure this path is correct */
+    background-size: cover; /* Cover the entire area */
+    background-position: center; /* Center the background image */
+    background-repeat: no-repeat; /* Do not repeat the image */
+    background-attachment: fixed; /* The background remains fixed during scrolling */
+    min-height: 100vh; /* Minimum height to cover the full viewport height */
+    width: 100%; /* Cover the full width */
+    display: flex; /* Ensures flex properties apply */
+    flex-direction: column; /* Stacks child elements vertically */
+    align-items: stretch; /* Stretches child elements to match the width of the dashboard */
 }
 
-.header {
-    padding: 1em;
+.main-content {
+    flex-grow: 1; /* Takes up all available space */
+    display: flex; /* Enables flexbox properties for this container */
+    flex-direction: row; /* Aligns children horizontally */
+    overflow-y: auto; /* Adds vertical scroll to this container */
+}
+
+.header, .menu, .footer-text {
     background-color: #ffffff;
     color: white;
-    align-items: center;
 }
 
 .menu {
-background-color: #ffffff;
-    color: white;
-    width: 200px; /* Adjust as needed */
+    width: 200px;
     padding: 1em;
 }
 
@@ -33,10 +39,6 @@ background-color: #ffffff;
     flex-grow: 1;
     margin-left: 1em;
     margin-right: 1em;
-}
-
-.profile-button {
-    margin-left: auto;
 }
 
 .menu .vaadin-button {
@@ -48,22 +50,17 @@ background-color: #ffffff;
     opacity: 0.7;
 }
 
-.song-prompt-card {
-  width: 300px; /* Fixed width for prompt card */
-  flex-shrink: 0; /* Prevents the card from shrinking */
-  height: 100vh; /* Full viewport height */
-  position: sticky;
-  top: 0; /* Stick to the top */
-  padding: 10px;  /* Add some padding for breathing room */
+.user-dashboard {
+    background-image: url('../images/user-background.avif');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+    width: 100%;
+}
+vaadin-grid::part(row), vaadin-grid::part(cell) {
+  background-color: transparent !important;
 }
 
-.main-content {
-  display: flex;
-  flex-direction: row;
-}
 
-.song-list {
-  flex-grow: 1; /* Allow song list to grow and fill space */
-  overflow-y: auto; /* Add scroll for overflow */
-  margin-right: var(--lumo-space-m);
-}

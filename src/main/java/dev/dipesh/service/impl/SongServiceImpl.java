@@ -3,6 +3,7 @@ package dev.dipesh.service.impl;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.dipesh.controller.UserController;
 import dev.dipesh.dto.SongResponseDTO;
 import dev.dipesh.entity.Song;
 import dev.dipesh.entity.SongLike;
@@ -39,16 +40,17 @@ public class SongServiceImpl implements SongService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final String apiKey;
-
+    private final UserController userController;
     @Autowired
     public SongServiceImpl(HttpClient httpClient, SongRepository songRepository,
                            SongLikeRepository songLikeRepository, UserRepository userRepository,
-                           @Value("${api.key}") String apiKey) {
+                           @Value("${api.key}") String apiKey, UserController userController) {
         this.httpClient = httpClient;
         this.songRepository = songRepository;
         this.songLikeRepository = songLikeRepository;
         this.userRepository = userRepository;
         this.apiKey = apiKey;
+        this.userController = userController;
         this.objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
@@ -115,8 +117,9 @@ public class SongServiceImpl implements SongService {
         }
         JsonNode dataNode = rootNode.path("data");
         Song song = objectMapper.treeToValue(dataNode, Song.class);
-
         if (song != null) {
+            //Caveat, Since we have to find otu which user has requested to created to save the song
+            song.setUserId(userController.getCurrentUser().getUserId());
             songRepository.save(song);
         }
         return song;
@@ -218,6 +221,8 @@ public class SongServiceImpl implements SongService {
         }
     }
 
+
+
     private HttpRequest buildHttpRequest(String uri) {
         return HttpRequest.newBuilder()
                 .GET()
@@ -226,6 +231,7 @@ public class SongServiceImpl implements SongService {
                 .header("api-key", apiKey)
                 .build();
     }
+
 
 
 }

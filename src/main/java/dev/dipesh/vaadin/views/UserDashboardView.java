@@ -79,6 +79,8 @@ public class UserDashboardView extends VerticalLayout {
             add(greeting, tabs, selectedContent);
         });
 
+        addClassName("user-dashboard");
+
         add(greeting, tabs);
         setSelectedTab(createSongTab);
     }

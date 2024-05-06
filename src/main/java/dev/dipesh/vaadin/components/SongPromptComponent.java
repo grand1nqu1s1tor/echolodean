@@ -14,15 +14,20 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.spring.annotation.UIScope;
-import dev.dipesh.dto.PromptRequestDTO;
 import dev.dipesh.controller.SongController;
+import dev.dipesh.dto.PromptRequestDTO;
 import dev.dipesh.vaadin.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 @UIScope
 @Component
+@PageTitle("Create Song")
 public class SongPromptComponent extends VerticalLayout {
 
     private TextField songPromptField;
@@ -36,52 +41,85 @@ public class SongPromptComponent extends VerticalLayout {
     private SongController songController;
 
     public SongPromptComponent() {
+        addClassName("song-prompt-component");
         setWidthFull();
-        setSpacing(true);
-        setMargin(true);
+        setAlignItems(Alignment.START);
+        setJustifyContentMode(JustifyContentMode.START);
+
+        // Heading for song creation
+        Span createSongHeading = new Span("Create New Song");
+        createSongHeading.addClassNames("heading");
+        add(createSongHeading);
 
         // Song Prompt components
         HorizontalLayout promptLayout = new HorizontalLayout();
+        promptLayout.addClassNames("prompt-layout");
         songPromptField = new TextField();
         songPromptField.setPlaceholder("Enter prompt for the song...");
         songPromptField.setWidthFull();
-        Span songPromptLabel = new Span("Song Prompt");
-        promptLayout.add(songPromptLabel, songPromptField);
+        promptLayout.add(new Span("Song Prompt"), songPromptField);
         add(promptLayout);
 
         // Model Version components
         HorizontalLayout versionLayout = new HorizontalLayout();
+        versionLayout.addClassNames("version-layout");
         modelVersionComboBox = new ComboBox<>("Model Version");
         modelVersionComboBox.setItems("chirp-v3-0");
         modelVersionComboBox.setValue("chirp-v3-0");
         modelVersionComboBox.setWidth("300px");
-        Span modelVersionLabel = new Span("Model Version");
-        versionLayout.add(modelVersionLabel, modelVersionComboBox);
+        versionLayout.add(new Span("Model Version"), modelVersionComboBox);
         add(versionLayout);
 
         // Instrumental Checkbox
         makeInstrumentalCheckbox = new Checkbox("Make Instrumental");
+        makeInstrumentalCheckbox.addClassNames("checkbox");
         add(makeInstrumentalCheckbox);
 
         // Create Button
-        createButton = new Button("Create", new Icon(VaadinIcon.MUSIC));
-        createButton.addClickListener(click -> {
-            try {
-                createSong();
-            } catch (Exception e) {
-                Notification.show("Error: " + e.getMessage(), 5000, Notification.Position.MIDDLE)
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            }
-        });
+        configureCreateButton();
         add(createButton);
 
         // Progress components
         progressBar = new ProgressBar();
         progressText = new Span("Processing...");
         HorizontalLayout progressLayout = new HorizontalLayout(progressBar, progressText);
-        progressText.setVisible(false);
+        progressLayout.addClassNames("progress-layout");
         progressBar.setVisible(false);
+        progressText.setVisible(false);
         add(progressLayout);
+    }
+
+    private void configureCreateButton() {
+        createButton = new Button("Create", new Icon(VaadinIcon.MUSIC));
+        createButton.addClassNames("create-button");
+        createButton.addClickListener(event -> {
+            try {
+                disableComponents();
+                createSong();
+            } catch (Exception e) {
+                Notification.show("Error: " + e.getMessage(), 5000, Notification.Position.MIDDLE)
+                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                reenableComponents();
+            }
+        });
+    }
+
+    private void disableComponents() {
+        createButton.setEnabled(false);
+        progressBar.setVisible(true);
+        progressText.setVisible(true);
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                UI.getCurrent().access(() -> reenableComponents());
+            }
+        }, 60000); // 60000 milliseconds = 1 minute
+    }
+
+    private void reenableComponents() {
+        createButton.setEnabled(true);
+        progressBar.setVisible(false);
+        progressText.setVisible(false);
     }
 
     private void createSong() throws JsonProcessingException {
@@ -92,11 +130,7 @@ public class SongPromptComponent extends VerticalLayout {
                     makeInstrumentalCheckbox.getValue(),
                     ""
             );
-            progressBar.setVisible(true);
-            progressText.setVisible(true);
             songController.generateSong(promptRequest);
-            progressBar.setVisible(false);
-            progressText.setVisible(false);
             Notification.show("Song created successfully!", 3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         } else {

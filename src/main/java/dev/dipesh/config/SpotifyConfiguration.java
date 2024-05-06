@@ -1,5 +1,6 @@
 package dev.dipesh.config;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,13 +22,29 @@ public class SpotifyConfiguration {
     private String customServerIp;
 
     @Bean
-    public SpotifyApi getSpotifyObject() {
-        URI redirectUri = SpotifyHttpManager.makeUri(customServerIp + "/api/get-user-code");
+    public URI spotifyRedirectUri() {
+        return SpotifyHttpManager.makeUri(customServerIp + "/api/get-user-code");
+    }
 
+    @Bean
+    public SpotifyApi getSpotifyObject() {
         return new SpotifyApi.Builder()
                 .setClientId(clientId)
                 .setClientSecret(clientSecret)
-                .setRedirectUri(redirectUri)
+                .setRedirectUri(spotifyRedirectUri())
+                .build();
+    }
+
+    public SpotifyApi getSpotifyObjectFromSession(HttpSession session) {
+        String accessToken = (String) session.getAttribute("accessToken");
+        String refreshToken = (String) session.getAttribute("refreshToken");
+
+        return new SpotifyApi.Builder()
+                .setAccessToken(accessToken)
+                .setRefreshToken(refreshToken)
+                .setClientId(clientId)
+                .setClientSecret(clientSecret)
+                .setRedirectUri(spotifyRedirectUri())
                 .build();
     }
 }
