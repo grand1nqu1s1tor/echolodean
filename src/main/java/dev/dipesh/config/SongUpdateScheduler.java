@@ -22,7 +22,7 @@ public class SongUpdateScheduler {
         this.externalAPIService = externalAPIService;
     }
 
-    @Scheduled(fixedDelay = 30000)
+    @Scheduled(fixedDelay = 10000)
     public void updateSongDetails() {
         List<Song> songsToUpdate = songService.findSongsWithMissingMetadata();
         for (Song song : songsToUpdate) {

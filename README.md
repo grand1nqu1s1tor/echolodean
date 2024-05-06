@@ -25,4 +25,4 @@ Dipesh Parwani - N15729998 - dp3754@nyu.edu
 
 Project Link: [GitHub Repository](#) *(https://github.com/grand1nqu1s1tor/echolodean)*
 
-
+OAuth2.0 Flow Integration: *(https://app.diagrams.net/#G126jkIWePgj68zEMUPf8R70BCRyFw5jNP#{"pageId"%3A"90a13364-a465-7bf4-72fc-28e22215d7a0"})*

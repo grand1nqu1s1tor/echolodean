@@ -65,6 +65,9 @@ public class SongServiceImpl implements SongService {
                     String songId = dataNode.path("song_id").asText();
                     System.out.println("Song ID: " + songId);
                     songIds.add(songId);
+                    Song song = new Song();
+                    song.setUserId(userController.getCurrentUser().getUserId());
+                    song.setSongId(songId);
                 }
             }
         } catch (IOException e) {
@@ -94,7 +97,7 @@ public class SongServiceImpl implements SongService {
                         songDetails.add(song);
                     }
                 } else {
-                    LOGGER.log(Level.WARNING, "Failed to fetch song details for ID: " + songId + ", Status code: " + response.statusCode());
+                    LOGGER.log(Level.SEVERE, "Failed to fetch song details for ID: " + songId + ", Status code: " + response.statusCode());
                 }
             } catch (IOException | InterruptedException e) {
                 LOGGER.log(Level.SEVERE, "Error fetching song details for song ID: " + songId, e);

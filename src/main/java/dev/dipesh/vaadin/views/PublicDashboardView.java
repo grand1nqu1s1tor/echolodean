@@ -34,21 +34,20 @@ import static dev.dipesh.vaadin.util.SecurityUtils.isUserLoggedIn;
 public class PublicDashboardView extends VerticalLayout {
     private final SongService songService;
     private final UserService userService;
-    private final SongPromptComponent songPromptComponent;
     private final AudioPlayerComponent audioPlayerComponent;
 
     @Autowired
-    public PublicDashboardView(SongService songService, UserService userService, SongPromptComponent songPromptComponent) {
+    public PublicDashboardView(SongService songService, UserService userService /*, SongPromptComponent songPromptComponent */) {
         this.songService = songService;
         this.userService = userService;
-        this.songPromptComponent = songPromptComponent;
+        // this.songPromptComponent = songPromptComponent;  // This line is now commented out
         this.audioPlayerComponent = new AudioPlayerComponent();
         addClassName("dashboard");
 
         // Initialize layout components
         HorizontalLayout header = createHeader();
         VerticalLayout menu = createMenu();
-        FlexLayout mainContent = new FlexLayout(createSongListLayout(), songPromptComponent, audioPlayerComponent);
+        FlexLayout mainContent = new FlexLayout(createSongListLayout() /*, songPromptComponent */, audioPlayerComponent);  // Comment out SongPromptComponent
         mainContent.setSizeFull();
         mainContent.addClassName("main-content");
         mainContent.setFlexDirection(FlexLayout.FlexDirection.ROW);

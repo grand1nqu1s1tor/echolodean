@@ -17,6 +17,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.spring.annotation.UIScope;
 import dev.dipesh.controller.SongController;
+import dev.dipesh.controller.UserController;
 import dev.dipesh.dto.PromptRequestDTO;
 import dev.dipesh.vaadin.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,11 +37,15 @@ public class SongPromptComponent extends VerticalLayout {
     private Button createButton;
     private ProgressBar progressBar;
     private Span progressText;
+    private final UserController userController;
+
 
     @Autowired
     private SongController songController;
 
-    public SongPromptComponent() {
+    public SongPromptComponent(UserController userController) {
+        this.userController = userController;
+
         addClassName("song-prompt-component");
         setWidthFull();
         setAlignItems(Alignment.START);
@@ -123,7 +128,7 @@ public class SongPromptComponent extends VerticalLayout {
     }
 
     private void createSong() throws JsonProcessingException {
-        if (SecurityUtils.isUserLoggedIn()) {
+        if (SecurityUtils.isUserLoggedIn()  ) {
             PromptRequestDTO promptRequest = new PromptRequestDTO(
                     songPromptField.getValue(),
                     modelVersionComboBox.getValue(),
