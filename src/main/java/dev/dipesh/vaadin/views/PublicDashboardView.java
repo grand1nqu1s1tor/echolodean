@@ -15,13 +15,12 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.spring.annotation.UIScope;
 import dev.dipesh.entity.Song;
-import dev.dipesh.vaadin.components.AudioPlayerComponent;
-import dev.dipesh.vaadin.components.SongPromptComponent;
 import dev.dipesh.service.SongService;
 import dev.dipesh.service.UserService;
+import dev.dipesh.vaadin.components.AudioPlayerComponent;
+import dev.dipesh.vaadin.components.SongPromptComponent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 
@@ -37,7 +36,7 @@ public class PublicDashboardView extends VerticalLayout {
     private final UserService userService;
     private HorizontalLayout linkContainer;
     private final SongPromptComponent songPromptComponent;
-    private AudioPlayerComponent audioPlayerComponent;
+    private final AudioPlayerComponent audioPlayerComponent;
 
     @Autowired
     public PublicDashboardView(SongService songService, UserService userService, SongPromptComponent songPromptComponent) {
@@ -59,7 +58,7 @@ public class PublicDashboardView extends VerticalLayout {
         mainContent.add(audioPlayerComponent);
 
         HorizontalLayout footer = createFooter();
-        initLinkContainer();
+        //initLinkContainer();
 
         // Adding components to the root layout
         add(header, mainContent, footer, linkContainer);
@@ -68,7 +67,6 @@ public class PublicDashboardView extends VerticalLayout {
         // Update UI based on user authentication state
         updateVisibilityBasedOnAuthentication();
     }
-
 
 
     private VerticalLayout createSongListLayout() {
@@ -220,7 +218,7 @@ public class PublicDashboardView extends VerticalLayout {
     }
 
 
-    private void initLinkContainer() {
+/*    private void initLinkContainer() {
 
         // Router links
         RouterLink homeLink = new RouterLink("Home",UserDashboardView.class);
@@ -234,7 +232,7 @@ public class PublicDashboardView extends VerticalLayout {
         linkContainer = new HorizontalLayout(homeLink, mySongsLink);
         linkContainer.addClassName("link-container");
         linkContainer.setVisible(false);
-    }
+    }*/
 
     public void updateVisibilityBasedOnAuthentication() {
         boolean loggedIn = isUserLoggedIn();

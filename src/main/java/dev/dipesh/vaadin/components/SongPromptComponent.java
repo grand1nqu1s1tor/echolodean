@@ -131,7 +131,7 @@ public class SongPromptComponent extends VerticalLayout {
                     ""
             );
             songController.generateSong(promptRequest);
-            Notification.show("Song created successfully!", 3000, Notification.Position.MIDDLE)
+            Notification.show("Song generation has started. It won't be long now.", 3000, Notification.Position.MIDDLE)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
         } else {
             UI.getCurrent().navigate("login");

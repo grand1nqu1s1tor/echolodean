@@ -12,18 +12,17 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import dev.dipesh.controller.UserController;
 import dev.dipesh.entity.Song;
-import dev.dipesh.vaadin.components.AudioPlayerComponent;
 import dev.dipesh.service.SongService;
+import dev.dipesh.vaadin.components.AudioPlayerComponent;
 
 import java.util.List;
 
 @Route("my-songs")
 @PageTitle("My Songs")
 @CssImport("./styles/styles.css")
-public class MySongsView extends VerticalLayout implements UserDashboardView.UpdatableTabContent{
+public class MySongsView extends VerticalLayout implements UserDashboardView.UpdatableTabContent {
 
-        private final SongService songService;
-    //private final SecuredViewAccessChecker accessChecker;
+    private final SongService songService;
     private Grid<Song> grid = new Grid<>(Song.class);
 
     private final UserController userController;

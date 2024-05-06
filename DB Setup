@@ -1,0 +1,36 @@
+CREATE DATABASE IF NOT EXISTS echolodean_db;
+
+USE echolodean_db;
+
+CREATE TABLE IF NOT EXISTS user_data (
+    user_id VARCHAR(255) PRIMARY KEY NOT NULL,  -- Spotify ID as primary key
+    username VARCHAR(255) UNIQUE,               -- Unique username (redundant if using Spotify usernames)
+    email VARCHAR(255) UNIQUE,                  -- Email address, make sure it's unique
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- Record creation time, automatically set
+);
+
+CREATE TABLE IF NOT EXISTS songs_metadata (
+    song_id CHAR(36) PRIMARY KEY, -- UUIDs are 36 characters long
+    user_id VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    duration DECIMAL(5, 2),
+    audio_url VARCHAR(255),
+    image_url VARCHAR(255),
+    lyrics TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    likes INT DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES user_data(user_id)
+);
+
+CREATE TABLE IF NOT EXISTS song_likes (
+    song_id CHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
+    PRIMARY KEY (song_id, user_id),
+    FOREIGN KEY (song_id) REFERENCES songs_metadata(song_id),
+    FOREIGN KEY (user_id) REFERENCES user_data(user_id)
+);
+
+
+
+
