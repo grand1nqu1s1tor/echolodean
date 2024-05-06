@@ -15,6 +15,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.spring.annotation.UIScope;
 import dev.dipesh.entity.Song;
 import dev.dipesh.service.SongService;
@@ -31,10 +32,8 @@ import static dev.dipesh.vaadin.util.SecurityUtils.isUserLoggedIn;
 @PageTitle("Music Dashboard")
 @CssImport("./styles/default-dashboard-styles.css")
 public class PublicDashboardView extends VerticalLayout {
-
     private final SongService songService;
     private final UserService userService;
-    private HorizontalLayout linkContainer;
     private final SongPromptComponent songPromptComponent;
     private final AudioPlayerComponent audioPlayerComponent;
 
@@ -54,19 +53,14 @@ public class PublicDashboardView extends VerticalLayout {
         mainContent.addClassName("main-content");
         mainContent.setFlexDirection(FlexLayout.FlexDirection.ROW);
 
-        // Add the audio player component
         mainContent.add(audioPlayerComponent);
 
         HorizontalLayout footer = createFooter();
-        //initLinkContainer();
 
-        // Adding components to the root layout
-        add(header, mainContent, footer, linkContainer);
+        add(header, mainContent, footer);
         setSizeFull();
-
-        // Update UI based on user authentication state
-        updateVisibilityBasedOnAuthentication();
     }
+
 
 
     private VerticalLayout createSongListLayout() {
@@ -75,19 +69,16 @@ public class PublicDashboardView extends VerticalLayout {
         songListLayout.setSizeFull();
         songListLayout.getStyle().set("max-height", "100%").set("overflow-y", "auto");
 
-        // Add a heading
         H2 songListHeading = new H2("Trending Songs");
         songListHeading.addClassName("section-heading");
 
         Image trendingImage = new Image("images/Trending.jpg", "Trending");
         trendingImage.setHeight("40px");
 
-// Create a HorizontalLayout to keep the heading and image in one line
         HorizontalLayout headerLayout = new HorizontalLayout(songListHeading, trendingImage);
         headerLayout.setDefaultVerticalComponentAlignment(Alignment.CENTER); // Aligns children vertically in the center
         headerLayout.setAlignItems(Alignment.CENTER); // Centers items along the cross axis
 
-// Add the header layout to the song list layout or another parent layout
         songListLayout.add(headerLayout);
 
         Page<Song> trendingSongs = songService.getTrendingSongs(10);
@@ -125,30 +116,7 @@ public class PublicDashboardView extends VerticalLayout {
 
 
     private VerticalLayout createMenu() {
-        VerticalLayout menu = new VerticalLayout();
-        menu.addClassName("menu");
-        menu.setWidth("200px");
-        menu.setHeightFull();
-
-        Button homeButton = new Button("Home", new Icon(VaadinIcon.HOME));
-        Button searchButton = new Button("Search", new Icon(VaadinIcon.SEARCH));
-        homeButton.setWidthFull();
-        searchButton.setWidthFull();
-
-        homeButton.addClickListener(event -> {
-            // call your login method here
-            UI.getCurrent().navigate(PublicDashboardView.class);
-
-        });
-
-        //Enter Song Title
-        searchButton.addClickListener(event -> {
-            // call your login method here
-            UI.getCurrent().navigate(LoginView.class);
-
-        });
-        menu.add(homeButton, searchButton);
-        return menu;
+        return new VerticalLayout();
     }
 
 
@@ -217,26 +185,5 @@ public class PublicDashboardView extends VerticalLayout {
         return cardLayout;
     }
 
-
-/*    private void initLinkContainer() {
-
-        // Router links
-        RouterLink homeLink = new RouterLink("Home",UserDashboardView.class);
-        RouterLink mySongsLink = new RouterLink("My Songs", MySongsView.class);
-
-        // Styling links
-        homeLink.addClassName("router-link");
-        mySongsLink.addClassName("router-link");
-
-        // Link container for layout control
-        linkContainer = new HorizontalLayout(homeLink, mySongsLink);
-        linkContainer.addClassName("link-container");
-        linkContainer.setVisible(false);
-    }*/
-
-    public void updateVisibilityBasedOnAuthentication() {
-        boolean loggedIn = isUserLoggedIn();
-        linkContainer.setVisible(loggedIn);
-    }
 
 }
