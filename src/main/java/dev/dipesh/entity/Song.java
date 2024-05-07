@@ -33,7 +33,7 @@ public class Song {
 
     private String description;
 
-    @JsonProperty("duration") // Duration in JSON might be in different units
+    @JsonProperty("duration")
     private double duration;
 
     @Column(nullable = false)
@@ -49,6 +49,6 @@ public class Song {
     private String imageUrl;
 
     @Lob
-    @JsonProperty("meta_prompt") // Assuming this is where lyrics are stored in JSON
+    @JsonProperty("meta_prompt")
     private String lyrics;
 }

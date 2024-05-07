@@ -41,6 +41,7 @@ public class SongServiceImpl implements SongService {
     private final ObjectMapper objectMapper;
     private final String apiKey;
     private final UserController userController;
+
     @Autowired
     public SongServiceImpl(HttpClient httpClient, SongRepository songRepository,
                            SongLikeRepository songLikeRepository, UserRepository userRepository,
@@ -55,6 +56,7 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
+    @Transactional
     public ArrayList<String> extractSongIds(String jsonResponse) {
         ArrayList<String> songIds = new ArrayList<>();
         try {
@@ -65,9 +67,7 @@ public class SongServiceImpl implements SongService {
                     String songId = dataNode.path("song_id").asText();
                     System.out.println("Song ID: " + songId);
                     songIds.add(songId);
-                    Song song = new Song();
-                    song.setUserId(userController.getCurrentUser().getUserId());
-                    song.setSongId(songId);
+                    saveInitialSong(songId);
                 }
             }
         } catch (IOException e) {
@@ -121,7 +121,7 @@ public class SongServiceImpl implements SongService {
         JsonNode dataNode = rootNode.path("data");
         Song song = objectMapper.treeToValue(dataNode, Song.class);
         if (song != null) {
-            //Caveat, Since we have to find otu which user has requested to created to save the song
+            //Caveat, Since we have to find out which user has requested to created to save the song
             song.setUserId(userController.getCurrentUser().getUserId());
             songRepository.save(song);
         }
@@ -225,7 +225,6 @@ public class SongServiceImpl implements SongService {
     }
 
 
-
     private HttpRequest buildHttpRequest(String uri) {
         return HttpRequest.newBuilder()
                 .GET()
@@ -235,8 +234,15 @@ public class SongServiceImpl implements SongService {
                 .build();
     }
 
-
-
+    @Transactional
+    public void saveInitialSong(String songId) {
+        Song song = new Song();
+        song.setSongId(songId);
+        song.setUserId(userController.getCurrentUser().getUserId());
+        song.setTitle("Generating Song...");
+        song.setImageUrl("https://drive.google.com/file/d/12z9T0xWeugc0OExM1nPQA_BHEa4-gjnP/view?usp=sharing");
+        songRepository.save(song);
+    }
 }
 
 
