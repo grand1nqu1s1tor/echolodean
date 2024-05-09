@@ -51,6 +51,9 @@ To set up the `application.properties` file for the Echolodean project, navigate
   - `spring.datasource.username`: Replace with your database username.
   - `spring.datasource.password`: Replace with your database password.
 
+- **FOX API Key for sunoaiapi.com**:
+-  `api.key`: Replace with your 'sunoaiapi.com' API key.
+
 ### 3. Running the Application
 
 Once the configuration is complete, you can run the application. Open a terminal window, navigate to the project directory, and execute the following command:
